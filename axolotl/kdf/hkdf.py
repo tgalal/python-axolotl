@@ -14,7 +14,7 @@ class HKDF(object):
         elif messageVersion == 3:
             return hkdfv3.HKDFv3()
         else:
-            raise Exception("Unknown version: %s " % messageVersion)
+            raise  AssertionError("Unknown version: %s " % messageVersion)
 
     def deriveSecrets(self, inputKeyMaterial, info, outputLength, salt = None):
         salt = salt or bytearray(self.__class__.HASH_OUTPUT_SIZE)

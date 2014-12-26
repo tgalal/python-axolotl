@@ -1,0 +1,2 @@
+class InvalidMessageException(Exception):
+    pass

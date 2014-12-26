@@ -1,0 +1,2 @@
+class LegacyMessageException(Exception):
+    pass
