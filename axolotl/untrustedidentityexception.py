@@ -1,0 +1,2 @@
+class UntrustedIdentityException(Exception):
+    pass

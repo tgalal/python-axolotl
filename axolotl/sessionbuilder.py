@@ -5,6 +5,9 @@ from .ecc.curve import Curve
 from .util.medium import Medium
 from .ratchet.aliceaxolotlparameters import AliceAxolotlParameters
 from .ratchet.bobaxolotlparamaters import BobAxolotlParameters
+from axolotl.invalidkeyexception import InvalidKeyException
+from axolotl.invalidkeyidexception import InvalidKeyIdException
+from axolotl.untrustedidentityexception import UntrustedIdentityException
 logger = logging.getLogger(__name__)
 class SessionBuilder:
     def __init__(self, sessionStore, preKeyStore, signedPreKeyStore, identityKeyStore, recepientId, deviceId):
@@ -28,14 +31,14 @@ class SessionBuilder:
         unsignedPreKeyId = None
 
         if not self.identityKeyStore.isTrustedIdentity(self.recipientId, theirIdentityKey):
-            raise Exception("Untrusted identity!!")
+            raise UntrustedIdentityException("Untrusted identity!!")
 
         if messageVersion == 2:
             unsignedPreKeyId = self.processV2(sessionRecord, message)
         elif messageVersion == 3:
             unsignedPreKeyId = self.processV3(sessionRecord, message)
         else:
-            raise Exception("Unkown version %s" % messageVersion)
+            raise AssertionError("Unkown version %s" % messageVersion)
 
         self.identityKeyStore.saveIdentity(self.recipientId, theirIdentityKey)
 
@@ -49,7 +52,7 @@ class SessionBuilder:
         """
 
         if message.getPreKeyId() is None:
-            raise Exception("V2 message requires one time prekey id!")
+            raise InvalidKeyIdException("V2 message requires one time prekey id!")
 
         if not self.preKeyStore.containsPreKey(message.getPreKeyId()) and\
             self.sessionStore.containsSession(self.recipientId, self.deviceId):
@@ -126,16 +129,16 @@ class SessionBuilder:
         :type preKey: PreKeyBundle
         """
         if not self.identityKeyStore.isTrustedIdentity(self.recipientId, preKey.getIdentityKey()):
-            raise Exception("Untrusted ID !!")
+            raise UntrustedIdentityException()
 
         if preKey.getSignedPreKey() is not None and\
             not Curve.verifySignature(preKey.getIdentityKey().getPublicKey(),
                                       preKey.getSignedPreKey().serialize(),
                                       preKey.getSignedPreKeySignature()) :
-            raise Exception("Invalid signature on device key!")
+            raise InvalidKeyException("Invalid signature on device key!")
 
         if preKey.getSignedPreKey() is None and preKey.getPreKey() is None:
-            raise Exception("Both signed and unsigned prekeys are absent!")
+            raise InvalidKeyException("Both signed and unsigned prekeys are absent!")
 
         supportsV3 = preKey.getSignedPreKey() is not None
         sessionRecord        = self.sessionStore.loadSession(self.recipientId, self.deviceId)
