@@ -1,0 +1,2 @@
+class DuplicateMessageException(Exception):
+    pass

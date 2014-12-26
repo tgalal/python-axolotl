@@ -1,0 +1,2 @@
+class NoSessionException(Exception):
+    pass

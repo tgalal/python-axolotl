@@ -8,6 +8,9 @@ from util.byteutil import ByteUtil
 from .state.sessionstate import SessionState
 from .protocol.whispermessage import WhisperMessage
 from .protocol.prekeywhispermessage import PreKeyWhisperMessage
+from axolotl.nosessionexception import NoSessionException
+from axolotl.invalidmessageexception import InvalidMessageException
+from axolotl.duplicatemessagexception import DuplicateMessageException
 import struct
 class SessionCipher:
 
@@ -53,37 +56,13 @@ class SessionCipher:
 
         return ciphertextMessage
 
-
-    """
-      public byte[] decrypt(WhisperMessage ciphertext, DecryptionCallback callback)
-      throws InvalidMessageException, DuplicateMessageException, LegacyMessageException,
-             NoSessionException
-  {
-    synchronized (SESSION_LOCK) {
-
-      if (!sessionStore.containsSession(recipientId, deviceId)) {
-        throw new NoSessionException("No session for: " + recipientId + ", " + deviceId);
-      }
-
-      SessionRecord sessionRecord = sessionStore.loadSession(recipientId, deviceId);
-      byte[]        plaintext     = decrypt(sessionRecord, ciphertext);
-
-      callback.handlePlaintext(plaintext);
-
-      sessionStore.storeSession(recipientId, deviceId, sessionRecord);
-
-      return plaintext;
-    }
-  }
-    """
-
     def decryptMsg(self, ciphertext):
         """
         :type ciphertext: WhisperMessage
         """
 
         if not self.sessionStore.containsSession(self.recipientId, self.deviceId):
-            raise Exception("No session for: %s, %s" % (self.recipientId, self.deviceId))
+            raise NoSessionException("No session for: %s, %s" % (self.recipientId, self.deviceId))
 
         sessionRecord = self.sessionStore.loadSession(self.recipientId, self.deviceId)
         plaintext = self.decryptWithSessionRecord(sessionRecord, ciphertext)
@@ -116,57 +95,36 @@ class SessionCipher:
         """
 
         previousStates = sessionRecord.getPreviousSessionStates()
-        sessionState = SessionState(sessionRecord.getSessionState())
-        plaintext = self.decryptWithSessionState(sessionState, cipherText)
-        sessionRecord.setState(sessionState)
+        exceptions = []
+        try:
+            sessionState = SessionState(sessionRecord.getSessionState())
+            plaintext = self.decryptWithSessionState(sessionState, cipherText)
+            sessionRecord.setState(sessionState)
+            return plaintext
+        except InvalidMessageException as e:
+            exceptions.append(e)
 
-        return plaintext
+        for i in range(0, len(previousStates)):
+            previousState = previousStates[i]
+            try:
+               promotedState = SessionState(previousState)
+               plaintext = self.decryptWithSessionState(promotedState, cipherText)
+               previousStates.pop(i)
+               sessionRecord.promoteState(promotedState)
+               return plaintext
+            except InvalidMessageException as e:
+                exceptions.append(e)
 
 
-    """
-      private byte[] decrypt(SessionRecord sessionRecord, WhisperMessage ciphertext)
-      throws DuplicateMessageException, LegacyMessageException, InvalidMessageException
-  {
-    synchronized (SESSION_LOCK) {
-      Iterator<SessionState> previousStates = sessionRecord.getPreviousSessionStates().iterator();
-      List<Exception>        exceptions     = new LinkedList<>();
-
-      try {
-        SessionState sessionState = new SessionState(sessionRecord.getSessionState());
-        byte[]       plaintext    = decrypt(sessionState, ciphertext);
-
-        sessionRecord.setState(sessionState);
-        return plaintext;
-      } catch (InvalidMessageException e) {
-        exceptions.add(e);
-      }
-
-      while (previousStates.hasNext()) {
-        try {
-          SessionState promotedState = new SessionState(previousStates.next());
-          byte[]       plaintext     = decrypt(promotedState, ciphertext);
-
-          previousStates.remove();
-          sessionRecord.promoteState(promotedState);
-
-          return plaintext;
-        } catch (InvalidMessageException e) {
-          exceptions.add(e);
-        }
-      }
-
-      throw new InvalidMessageException("No valid sessions.", exceptions);
-    }
-  }
-    """
+        raise InvalidMessageException("No valid sessions", exceptions)
 
     def decryptWithSessionState(self, sessionState, ciphertextMessage):
 
         if not sessionState.hasSenderChain():
-            raise Exception("Uninitialized session!")
+            raise InvalidMessageException("Uninitialized session!")
 
         if ciphertextMessage.getMessageVersion() != sessionState.getSessionVersion():
-            raise Exception("Message version %s, but session version %s" % (ciphertextMessage.getMessageVersion,
+            raise InvalidMessageException("Message version %s, but session version %s" % (ciphertextMessage.getMessageVersion,
                                                                             sessionState.getSessionVersion()))
 
         messageVersion = ciphertextMessage.getMessageVersion()
@@ -210,11 +168,11 @@ class SessionCipher:
             if sessionState.hasMessageKeys(theirEphemeral, counter):
                 return sessionState.removeMessageKeys(theirEphemeral, counter)
             else:
-                raise Exception("Duplicate Message Exception, Received message "
+                raise DuplicateMessageException("Received message "
                                 "with old counter: %s, %s" % (chainKey.getIndex(), counter))
 
         if counter - chainKey.getIndex() > 2000:
-            raise Exception("InvalidMessageException, Over 2000 messages into the future!")
+            raise InvalidMessageException("Over 2000 messages into the future!")
 
         while chainKey.getIndex() < counter:
             messageKeys = chainKey.getMessageKeys()
