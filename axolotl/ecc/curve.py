@@ -3,6 +3,7 @@ import os
 
 from .djbec import DjbECPrivateKey, DjbECPublicKey
 from .eckeypair import ECKeyPair
+from axolotl.invalidkeyexception import InvalidKeyException
 
 
 class Curve:
@@ -32,11 +33,11 @@ class Curve:
         if type == Curve.DJB_TYPE:
             type = bytes[offset] & 0xFF
             if type != Curve.DJB_TYPE:
-                raise Exception("InvalidKeyException Unknown key type: " + str(type) )
+                raise InvalidKeyException("Unknown key type: %s " % type )
             keyBytes = bytes[offset+1:][:32]
             return DjbECPublicKey(str(keyBytes))
         else:
-            raise Exception("InvalidKeyException Unknown key type: " + str(type) )
+            raise InvalidKeyException("Unknown key type: %s" % type )
 
     @staticmethod
     def decodePrivatePoint(bytes):
@@ -45,15 +46,42 @@ class Curve:
 
     @staticmethod
     def calculateAgreement(publicKey, privateKey):
-        return _curve.calculateAgreement(privateKey.getPrivateKey(), publicKey.getPublicKey())
+        """
+        :type publicKey: ECPublicKey
+        :type privateKey: ECPrivateKey
+        """
+
+        if publicKey.getType() != privateKey.getType():
+            raise InvalidKeyException("Public and private keys must be of the same type!")
+
+        if publicKey.getType() == Curve.DJB_TYPE:
+            return _curve.calculateAgreement(privateKey.getPrivateKey(), publicKey.getPublicKey())
+        else:
+            raise InvalidKeyException("Unknown type: %s" % publicKey.getType())
 
     @staticmethod
     def verifySignature(ecPublicSigningKey, message, signature):
-        result = _curve.verifySignature(ecPublicSigningKey.getPublicKey(), message, signature)
-        return result == 0
+        """
+        :type ecPublicSigningKey: ECPublicKey
+        :type message: bytearray
+        :type signature: bytearray
+        """
+
+        if ecPublicSigningKey.getType() ==Curve.DJB_TYPE:
+            result = _curve.verifySignature(ecPublicSigningKey.getPublicKey(), message, signature)
+            return result == 0
+        else:
+            raise InvalidKeyException("Unknown type: %s" % ecPublicSigningKey.getType())
 
     @staticmethod
     def calculateSignature(privateSigningKey ,message):
-        rand = os.urandom(64)
-        res = _curve.calculateSignature(rand, privateSigningKey.getPrivateKey(), message)
-        return res
+        """
+        :type privateSigningKey: ECPrivateKey
+        :type  message: bytearray
+        """
+        if privateSigningKey.getType() == Curve.DJB_TYPE:
+            rand = os.urandom(64)
+            res = _curve.calculateSignature(rand, privateSigningKey.getPrivateKey(), message)
+            return res
+        else:
+            raise InvalidKeyException("Unknown type: %s" % privateSigningKey.getType())
