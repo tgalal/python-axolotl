@@ -20,7 +20,7 @@ class SymmetricAxolotlParameters:
 
         if ourBaseKey is None or ourIdentityKey is None or ourRatchetKey is None\
             or theirRatchetKey is None or theirIdentityKey is None or theirBaseKey is None:
-            raise Exception("Null value!")
+            raise ValueError("Null value!")
 
     def getOurBaseKey(self):
         return self.ourBaseKey

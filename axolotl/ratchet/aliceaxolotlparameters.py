@@ -20,7 +20,7 @@ class AliceAxolotlParameters:
 
         if ourBaseKey is None or ourIdentityKey is None or theirSignedPreKey is None\
             or theirRatchetKey is None or theirIdentityKey is None or theirSignedPreKey is None:
-            raise Exception("Null value!")
+            raise ValueError("Null value!")
 
 
     def getOurIdentityKey(self):

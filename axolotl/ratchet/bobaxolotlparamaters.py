@@ -21,7 +21,7 @@ class BobAxolotlParameters:
 
         if ourIdentityKey is None or ourSignedPreKey is None or ourRatchetKey is None\
             or theirIdentityKey is None or theirBaseKey is None:
-            raise Exception("Null value!")
+            raise ValueError("Null value!")
 
     def getOurIdentityKey(self):
         return self.ourIdentityKey
