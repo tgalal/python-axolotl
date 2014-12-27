@@ -46,7 +46,9 @@ class ByteUtil:
         bit = ord(value) if type(value) is str else value
         return (bit & 0xFF) >> 4
 
-
+    @staticmethod
+    def lowBitsToInt(value):
+        return value & 0xF
 
     @staticmethod
     def intToByteArray(_bytes, offset, value):

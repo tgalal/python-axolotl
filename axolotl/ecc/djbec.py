@@ -3,6 +3,7 @@ from .ec import ECPublicKey, ECPrivateKey
 from ..util.byteutil import ByteUtil
 # from .curve import Curve
 import curve
+import binascii
 class DjbECPublicKey(ECPublicKey):
 
     def __init__(self, publicKey):
@@ -21,8 +22,8 @@ class DjbECPublicKey(ECPublicKey):
         return self.publicKey == other.getPublicKey()
 
     def __cmp__(self, other):
-        myVal = struct.unpack("<L", self.publicKey)[0]
-        otherVal = struct.unpack("<L", other.getPublicKey())[0]
+        myVal = int(binascii.hexlify(self.publicKey), 16)
+        otherVal = int(binascii.hexlify(other.getPublicKey()), 16)
 
         if myVal < otherVal:
             return -1

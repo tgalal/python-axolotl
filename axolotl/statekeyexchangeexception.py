@@ -1,0 +1,2 @@
+class StaleKeyExchangeException(Exception):
+    pass

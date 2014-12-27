@@ -11,6 +11,7 @@ import os
 import struct
 import time
 import binascii
+import math
 
 class KeyHelper:
 
@@ -39,13 +40,15 @@ class KeyHelper:
     """
     @staticmethod
     def generateRegistrationId():
-        regId =  KeyHelper.generateRandomSequence()
+        regId =  KeyHelper.getRandomSequence()
         return regId
 
     @staticmethod
-    def generateRandomSequence():
-        return abs(struct.unpack('>i', bytearray(os.urandom(4)))[0])
-
+    def getRandomSequence(max = 4294967296):
+        size = int(math.log(max)/ math.log(2)) / 8
+        rand = os.urandom(size)
+        randh = binascii.hexlify(rand)
+        return int(randh, 16)
 
     """
     Generate a list of PreKeys.  Clients should do this at install time, and

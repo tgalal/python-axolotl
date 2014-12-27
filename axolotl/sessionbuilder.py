@@ -8,6 +8,11 @@ from .ratchet.bobaxolotlparamaters import BobAxolotlParameters
 from axolotl.invalidkeyexception import InvalidKeyException
 from axolotl.invalidkeyidexception import InvalidKeyIdException
 from axolotl.untrustedidentityexception import UntrustedIdentityException
+from axolotl.protocol.keyexchangemessage import KeyExchangeMessage
+from axolotl.ratchet.symmetricaxolotlparameters import SymmetricAxolotlParameters
+from axolotl.protocol.ciphertextmessage import CiphertextMessage
+from axolotl.statekeyexchangeexception import StaleKeyExchangeException
+from axolotl.util.keyhelper import KeyHelper
 logger = logging.getLogger(__name__)
 class SessionBuilder:
     def __init__(self, sessionStore, preKeyStore, signedPreKeyStore, identityKeyStore, recepientId, deviceId):
@@ -169,3 +174,116 @@ class SessionBuilder:
         self.sessionStore.storeSession(self.recipientId, self.deviceId, sessionRecord)
         self.identityKeyStore.saveIdentity(self.recipientId, preKey.getIdentityKey())
 
+    def processKeyExchangeMessage(self, keyExchangeMessage):
+
+        if not self.identityKeyStore.isTrustedIdentity(self.recipientId, keyExchangeMessage.getIdentityKey()):
+            raise UntrustedIdentityException()
+
+        responseMessage = None
+
+        if keyExchangeMessage.isInitiate(): responseMessage = self.processInitiate(keyExchangeMessage)
+        else: self.processResponse(keyExchangeMessage)
+
+        return responseMessage
+
+    def processInitiate(self, keyExchangeMessage):
+        flags = KeyExchangeMessage.RESPONSE_FLAG
+        sessionRecord = self.sessionStore.loadSession(self.recipientId, self.deviceId)
+
+        if keyExchangeMessage.getVersion() >= 3 and not Curve.verifySignature(
+                keyExchangeMessage.getIdentityKey().getPublicKey(),
+                keyExchangeMessage.getBaseKey().serialize(),
+                keyExchangeMessage.getBaseKeySignature()):
+            raise InvalidKeyException("Bad signature!")
+
+        builder = SymmetricAxolotlParameters.newBuilder()
+        if not sessionRecord.getSessionState().hasPendingKeyExchange():
+            builder.setOurIdentityKey(self.identityKeyStore.getIdentityKeyPair())\
+                .setOurBaseKey(Curve.generateKeyPair())\
+                .setOurRatchetKey(Curve.generateKeyPair())
+        else:
+            builder.setOurIdentityKey(sessionRecord.getSessionState().getPendingKeyExchangeIdentityKey())\
+                .setOurBaseKey(sessionRecord.getSessionState().getPendingKeyExchangeBaseKey())\
+                .setOurRatchetKey(sessionRecord.getSessionState().getPendingKeyExchangeRatchetKey())
+            flags |= KeyExchangeMessage.SIMULTAENOUS_INITIATE_FLAG
+
+
+        builder.setTheirBaseKey(keyExchangeMessage.getBaseKey())\
+            .setTheirRatchetKey(keyExchangeMessage.getRatchetKey())\
+            .setTheirIdentityKey(keyExchangeMessage.getIdentityKey())
+
+        parameters = builder.create()
+
+        if not sessionRecord.isFresh(): sessionRecord.archiveCurrentState()
+
+        RatchetingSession.initializeSession(sessionRecord.getSessionState(),
+                                        min(keyExchangeMessage.getMaxVersion(), CiphertextMessage.CURRENT_VERSION),
+                                        parameters)
+
+        self.sessionStore.storeSession(self.recipientId, self.deviceId, sessionRecord)
+        self.identityKeyStore.saveIdentity(self.recipientId, keyExchangeMessage.getIdentityKey())
+
+        baseKeySignature = Curve.calculateSignature(parameters.getOurIdentityKey().getPrivateKey(),
+                                                       parameters.getOurBaseKey().getPublicKey().serialize())
+
+        return KeyExchangeMessage(sessionRecord.getSessionState().getSessionVersion(),
+                                  keyExchangeMessage.getSequence(), flags,
+                                  parameters.getOurBaseKey().getPublicKey(),
+                                  baseKeySignature, parameters.getOurRatchetKey().getPublicKey(),
+                                  parameters.getOurIdentityKey().getPublicKey())
+
+    def processResponse(self, keyExchangeMessage):
+        sessionRecord                  = self.sessionStore.loadSession(self.recipientId, self.deviceId)
+        sessionState                   = sessionRecord.getSessionState()
+        hasPendingKeyExchange          = sessionState.hasPendingKeyExchange()
+        isSimultaneousInitiateResponse = keyExchangeMessage.isResponseForSimultaneousInitiate()
+
+        if not hasPendingKeyExchange or sessionState.getPendingKeyExchangeSequence() != keyExchangeMessage.getSequence():
+            logger.warn("No matching sequence for response. Is simultaneous initiate response: %s" % isSimultaneousInitiateResponse)
+            if not isSimultaneousInitiateResponse:
+                raise StaleKeyExchangeException()
+            else:
+                return
+
+        parameters = SymmetricAxolotlParameters.newBuilder()
+
+        parameters.setOurBaseKey(sessionRecord.getSessionState().getPendingKeyExchangeBaseKey())\
+            .setOurRatchetKey(sessionRecord.getSessionState().getPendingKeyExchangeRatchetKey())\
+            .setOurIdentityKey(sessionRecord.getSessionState().getPendingKeyExchangeIdentityKey())\
+            .setTheirBaseKey(keyExchangeMessage.getBaseKey())\
+            .setTheirRatchetKey(keyExchangeMessage.getRatchetKey())\
+            .setTheirIdentityKey(keyExchangeMessage.getIdentityKey())
+
+        if not sessionRecord.isFresh(): sessionRecord.archiveCurrentState()
+
+        RatchetingSession.initializeSession(sessionRecord.getSessionState(),
+                                        min(keyExchangeMessage.getMaxVersion(), CiphertextMessage.CURRENT_VERSION),
+                                        parameters.create())
+
+        if sessionRecord.getSessionState().getSessionVersion() >= 3 and not Curve.verifySignature(
+                keyExchangeMessage.getIdentityKey().getPublicKey(),
+                keyExchangeMessage.getBaseKey().serialize(),
+                keyExchangeMessage.getBaseKeySignature()):
+            raise InvalidKeyException("Base key signature doesn't match!")
+
+
+        self.sessionStore.storeSession(self.recipientId, self.deviceId, sessionRecord)
+        self.identityKeyStore.saveIdentity(self.recipientId, keyExchangeMessage.getIdentityKey())
+
+    def processInitKeyExchangeMessage(self):
+        try:
+            sequence         = KeyHelper.getRandomSequence(65534) + 1
+            flags            = KeyExchangeMessage.INITIATE_FLAG
+            baseKey          = Curve.generateKeyPair()
+            ratchetKey       = Curve.generateKeyPair()
+            identityKey      = self.identityKeyStore.getIdentityKeyPair()
+            baseKeySignature = Curve.calculateSignature(identityKey.getPrivateKey(), baseKey.getPublicKey().serialize())
+            sessionRecord    = self.sessionStore.loadSession(self.recipientId, self.deviceId)
+
+            sessionRecord.getSessionState().setPendingKeyExchange(sequence, baseKey, ratchetKey, identityKey)
+            self.sessionStore.storeSession(self.recipientId, self.deviceId, sessionRecord)
+
+            return KeyExchangeMessage(2, sequence, flags, baseKey.getPublicKey(), baseKeySignature,
+                                      ratchetKey.getPublicKey(), identityKey.getPublicKey())
+        except InvalidKeyException as e:
+            raise AssertionError(e)
