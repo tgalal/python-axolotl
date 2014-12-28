@@ -1,4 +1,4 @@
-from storageprotos import SignedPreKeyRecordStructure
+from .storageprotos import SignedPreKeyRecordStructure
 from ..ecc.curve import Curve
 from ..ecc.eckeypair import ECKeyPair
 class SignedPreKeyRecord:

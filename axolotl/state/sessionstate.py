@@ -1,4 +1,4 @@
-import storageprotos
+from . import storageprotos
 from ..identitykeypair import IdentityKey,IdentityKeyPair
 from ..ratchet.rootkey import RootKey
 from ..kdf.hkdf import HKDF

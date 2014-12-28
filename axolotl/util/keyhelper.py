@@ -1,12 +1,9 @@
-
 from ..ecc.curve import Curve
-from ..ecc.eckeypair import ECKeyPair
-from ..ecc.djbec import *
 from ..identitykey import IdentityKey
 from ..identitykeypair import IdentityKeyPair
 from ..state.prekeyrecord import PreKeyRecord
 from ..state.signedprekeyrecord import SignedPreKeyRecord
-from medium import Medium
+from .medium import Medium
 import os
 import struct
 import time
@@ -46,7 +43,7 @@ class KeyHelper:
     @staticmethod
     def getRandomSequence(max = 4294967296):
         size = int(math.log(max)/ math.log(2)) / 8
-        rand = os.urandom(size)
+        rand = os.urandom(int(size))
         randh = binascii.hexlify(rand)
         return int(randh, 16)
 
@@ -66,7 +63,7 @@ class KeyHelper:
     def generatePreKeys(start, count):
         results = []
         start -= 1
-        for i in xrange(0, count):
+        for i in range(0, count):
             preKeyId = ((start + i) % (Medium.MAX_VALUE-1)) + 1
             results.append(PreKeyRecord(preKeyId, Curve.generateKeyPair()))
 

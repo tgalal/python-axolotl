@@ -1,8 +1,8 @@
 import struct
 from .ec import ECPublicKey, ECPrivateKey
 from ..util.byteutil import ByteUtil
-# from .curve import Curve
-import curve
+from axolotl.ecc import curve
+import sys
 import binascii
 class DjbECPublicKey(ECPublicKey):
 
@@ -10,7 +10,8 @@ class DjbECPublicKey(ECPublicKey):
         self.publicKey = publicKey
 
     def serialize(self):
-        return str(ByteUtil.combine([curve.Curve.DJB_TYPE], self.publicKey))
+        combined = ByteUtil.combine([curve.Curve.DJB_TYPE], self.publicKey)
+        return bytes(combined)
 
     def getType(self):
         return curve.Curve.DJB_TYPE
@@ -20,6 +21,12 @@ class DjbECPublicKey(ECPublicKey):
 
     def __eq__(self, other):
         return self.publicKey == other.getPublicKey()
+
+    def __lt__(self, other):
+        myVal = int(binascii.hexlify(self.publicKey), 16)
+        otherVal = int(binascii.hexlify(other.getPublicKey()), 16)
+
+        return myVal < otherVal
 
     def __cmp__(self, other):
         myVal = int(binascii.hexlify(self.publicKey), 16)

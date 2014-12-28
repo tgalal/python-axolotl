@@ -1,6 +1,6 @@
-from state.storageprotos import IdentityKeyPairStructure
-from identitykey import IdentityKey
-from ecc.curve import Curve
+from .state.storageprotos import IdentityKeyPairStructure
+from .identitykey import IdentityKey
+from .ecc.curve import Curve
 class IdentityKeyPair:
     def __init__(self, identityKeyPublicKey = None, ecPrivateKey = None, serialized = None):
         if serialized:

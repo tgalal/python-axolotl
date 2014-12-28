@@ -1,7 +1,7 @@
 import axolotl_curve25519 as _curve
 import os
 
-from .djbec import DjbECPrivateKey, DjbECPublicKey
+
 from .eckeypair import ECKeyPair
 from axolotl.invalidkeyexception import InvalidKeyException
 
@@ -22,26 +22,29 @@ class Curve:
 
     @staticmethod
     def generateKeyPair():
+        from axolotl.ecc import djbec
         privateKey = Curve.generatePrivateKey()
         publicKey = Curve.generatePublicKey(privateKey)
-        return ECKeyPair(DjbECPublicKey(publicKey), DjbECPrivateKey(privateKey))
+        return ECKeyPair(djbec.DjbECPublicKey(publicKey), djbec.DjbECPrivateKey(privateKey))
 
     @staticmethod
-    def decodePoint(bytes, offset=0):
-        type = bytes[0] # byte appears to be automatically converted to an integer??
+    def decodePoint(_bytes, offset=0):
+        from axolotl.ecc import djbec
+        type = _bytes[0] # byte appears to be automatically converted to an integer??
 
         if type == Curve.DJB_TYPE:
-            type = bytes[offset] & 0xFF
+            type = _bytes[offset] & 0xFF
             if type != Curve.DJB_TYPE:
                 raise InvalidKeyException("Unknown key type: %s " % type )
-            keyBytes = bytes[offset+1:][:32]
-            return DjbECPublicKey(str(keyBytes))
+            keyBytes = _bytes[offset+1:][:32]
+            return djbec.DjbECPublicKey(bytes(keyBytes))
         else:
             raise InvalidKeyException("Unknown key type: %s" % type )
 
     @staticmethod
-    def decodePrivatePoint(bytes):
-        return DjbECPrivateKey(str(bytes))
+    def decodePrivatePoint(_bytes):
+        from axolotl.ecc import djbec
+        return djbec.DjbECPrivateKey(bytes(_bytes))
 
 
     @staticmethod

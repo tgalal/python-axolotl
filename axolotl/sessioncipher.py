@@ -1,17 +1,15 @@
-from ecc.curve import Curve
+from .ecc.curve import Curve
 import Crypto.Cipher.AES as AES
 from Crypto.Util import Counter
-import hashlib, random, base64
-from ratchet.chainkey import ChainKey
 from .sessionbuilder import SessionBuilder
-from util.byteutil import ByteUtil
+from .util.byteutil import ByteUtil
 from .state.sessionstate import SessionState
 from .protocol.whispermessage import WhisperMessage
 from .protocol.prekeywhispermessage import PreKeyWhisperMessage
 from axolotl.nosessionexception import NoSessionException
 from axolotl.invalidmessageexception import InvalidMessageException
 from axolotl.duplicatemessagexception import DuplicateMessageException
-import struct
+import sys
 class SessionCipher:
 
 
@@ -26,8 +24,10 @@ class SessionCipher:
 
     def encrypt(self, paddedMessage):
         """
-        :type paddedMessage: bytearray
+        :type paddedMessage: str
         """
+
+        paddedMessage = bytearray(paddedMessage.encode() if sys.version_info > (3,0) else paddedMessage)
         sessionRecord   = self.sessionStore.loadSession(self.recipientId, self.deviceId)
         sessionState    = sessionRecord.getSessionState()
         chainKey        = sessionState.getSenderChainKey()
@@ -69,6 +69,8 @@ class SessionCipher:
 
         self.sessionStore.storeSession(self.recipientId, self.deviceId, sessionRecord)
 
+        if sys.version_info >= (3,0):
+            return plaintext.decode()
         return plaintext
 
     def decryptPkmsg(self, ciphertext):
@@ -85,6 +87,8 @@ class SessionCipher:
         if unsignedPreKeyId is not None:
             self.preKeyStore.removePreKey(unsignedPreKeyId)
 
+        if sys.version_info >= (3, 0):
+            return plaintext.decode()
         return plaintext
 
 
@@ -195,7 +199,7 @@ class SessionCipher:
         else:
             cipher = self.getCipher_v2(messageKeys.getCipherKey(), messageKeys.getCounter())
 
-        return cipher.encrypt(str(plainText))
+        return cipher.encrypt(bytes(plainText))
 
     def getPlaintext(self, version, messageKeys, cipherText):
         cipher = None
@@ -225,14 +229,18 @@ class SessionCipher:
         ivBytes = bytearray(16)
         ByteUtil.intToByteArray(ivBytes, 0, counter)
 
-        cipher = AES.new(key, AES.MODE_CTR, IV = str(ivBytes), counter=ctr)
+        cipher = AES.new(key, AES.MODE_CTR, IV = bytes(ivBytes), counter=ctr)
 
         return cipher
 
 
 BS = 16
-pad = lambda s: s + (BS - len(s) % BS) * chr(BS - len(s) % BS)
-unpad = lambda s : s[0:-ord(s[-1])]
+if sys.version_info >= (3,0):
+    pad = lambda s: s + ((BS - len(s) % BS) * chr(BS - len(s) % BS)).encode()
+    unpad = lambda s : s[0:-s[-1]]
+else:
+    pad = lambda s: s + (BS - len(s) % BS) * chr(BS - len(s) % BS)
+    unpad = lambda s : s[0:-ord(s[-1])]
 
 
 class AESCipher:
@@ -242,8 +250,14 @@ class AESCipher:
         self.cipher = AES.new(key, AES.MODE_CBC, IV = iv)
 
     def encrypt( self, raw ):
-        raw = pad(raw)
-        return ( self.cipher.encrypt( raw ) )#.encode("hex")
+        # if sys.version_info >= (3,0):
+        #     rawPadded = pad(raw.decode()).encode()
+        # else:
+        rawPadded = pad(raw)
+        try:
+            return self.cipher.encrypt(rawPadded)
+        except ValueError:
+            raise
 
     def decrypt(self, enc):
         return unpad(self.cipher.decrypt(enc))

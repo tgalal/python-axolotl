@@ -124,5 +124,5 @@ class HKDFTest(unittest.TestCase):
                   0x9b, 0x4a, 0xa9, 0xfd, 0xa8,
                   0x99, 0xda, 0xeb, 0xec])
 
-        actualOutput = HKDF.createFor(2).deriveSecrets(ikm, info, 64, salt = salt);
+        actualOutput = HKDF.createFor(2).deriveSecrets(ikm, info, 64, salt = salt)
         self.assertEqual(okm, actualOutput)

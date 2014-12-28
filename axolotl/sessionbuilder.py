@@ -1,6 +1,5 @@
 import logging
-from ratchet.bobaxolotlparamaters import BobAxolotlParameters
-from ratchet.ratchetingsession import RatchetingSession
+from .ratchet.ratchetingsession import RatchetingSession
 from .ecc.curve import Curve
 from .util.medium import Medium
 from .ratchet.aliceaxolotlparameters import AliceAxolotlParameters

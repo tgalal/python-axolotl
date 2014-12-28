@@ -8,7 +8,7 @@ class HKDF(object):
 
     @staticmethod
     def createFor(messageVersion):
-        import hkdfv2, hkdfv3
+        from . import hkdfv2, hkdfv3
         if messageVersion == 2:
             return hkdfv2.HKDFv2()
         elif messageVersion == 3:
@@ -38,7 +38,8 @@ class HKDF(object):
             mac.update(mixin)
             if info is not None:
                 mac.update(info)
-            mac.update(chr(i % 256))
+            updateChr = chr(i % 256)
+            mac.update(updateChr.encode())
 
             stepResult = mac.digest()
             stepSize = min(remainingBytes, len(stepResult))
@@ -46,7 +47,7 @@ class HKDF(object):
             mixin = stepResult
             remainingBytes -= stepSize
 
-        return str(results)
+        return bytes(results)
 
     @abc.abstractmethod
     def getIterationStartOffset(self):

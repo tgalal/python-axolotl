@@ -1,5 +1,5 @@
-import storageprotos
-from sessionstate import SessionState
+from . import storageprotos
+from .sessionstate import SessionState
 class SessionRecord:
     ARCHIVED_STATES_MAX_LENGTH = 40
     def __init__(self, sessionState = None, serialized = None):

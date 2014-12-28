@@ -1,7 +1,7 @@
-from ciphertextmessage import CiphertextMessage
+from .ciphertextmessage import CiphertextMessage
 from ..util.byteutil import ByteUtil
 from ..ecc.curve import Curve
-import whisperprotos
+from . import whisperprotos
 import hmac
 import hashlib
 from axolotl.legacymessageexception import LegacyMessageException
@@ -18,11 +18,11 @@ class WhisperMessage(CiphertextMessage):
         self.serialized = ""
         if serialized:
             try:
-                assert type(serialized) is str, "Expected serialized %s, got %s" % (str, type(serialized))
+                assert type(serialized) in (str, bytes), "Expected serialized %s, got %s" % (str, type(serialized))
                 messageParts = ByteUtil.split(serialized, 1, len(serialized) - 1 - WhisperMessage.MAC_LENGTH,
                                               WhisperMessage.MAC_LENGTH)
                 version = messageParts[0][0]
-                message = str(messageParts[1])
+                message = bytes(messageParts[1])
                 mac = messageParts[2]
 
                 if ByteUtil.highBitsToInt(version) <= self.__class__.UNSUPPORTED_VERSION:
@@ -55,7 +55,7 @@ class WhisperMessage(CiphertextMessage):
             message = message.SerializeToString()
             mac  = self.getMac(messageVersion, senderIdentityKey, receiverIdentityKey, macKey,
                                ByteUtil.combine(version, message))
-            self.serialized = str(ByteUtil.combine(version, message, mac))
+            self.serialized = bytes(ByteUtil.combine(version, message, mac))
             self.senderRatchetKey = ECPublicKey_senderRatchetKey
             self.counter = counter
             self.previousCounter = previousCounter

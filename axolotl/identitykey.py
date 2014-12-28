@@ -1,4 +1,4 @@
-from ecc.curve import Curve
+from .ecc.curve import Curve
 class IdentityKey:
     def __init__(self, ecPubKeyOrBytes, offset = None):
         if offset is None:

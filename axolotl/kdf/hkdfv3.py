@@ -1,4 +1,4 @@
-from hkdf import HKDF
+from .hkdf import HKDF
 
 class HKDFv3(HKDF):
     def getIterationStartOffset(self):

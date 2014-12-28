@@ -111,5 +111,5 @@ class Curve25519Test(unittest.TestCase):
         alicePublicKey  = Curve.decodePoint(aliceIdentityPublic, 0)
         aliceEphemeral  = Curve.decodePoint(aliceEphemeralPublic, 0)
 
-        res = Curve.verifySignature(alicePublicKey, aliceEphemeral.serialize(), str(aliceSignature))
+        res = Curve.verifySignature(alicePublicKey, aliceEphemeral.serialize(), bytes(aliceSignature))
         self.assertTrue(res)

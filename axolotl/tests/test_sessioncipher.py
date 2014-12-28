@@ -36,13 +36,13 @@ class SessionCipherTest(unittest.TestCase):
         aliceCipher    = SessionCipher(aliceStore, aliceStore, aliceStore, aliceStore, 2, 1)
         bobCipher      = SessionCipher(bobStore, bobStore, bobStore, bobStore, 3, 1)
 
-        alicePlaintext = bytearray("This is a plaintext message.")
+        alicePlaintext = "This is a plaintext message."
         message        = aliceCipher.encrypt(alicePlaintext)
         bobPlaintext   = bobCipher.decryptMsg(WhisperMessage(serialized=message.serialize()))
 
         self.assertEqual(alicePlaintext, bobPlaintext)
 
-        bobReply      = bytearray("This is a message from Bob.")
+        bobReply      = "This is a message from Bob."
         reply         = bobCipher.encrypt(bobReply)
         receivedReply = aliceCipher.decryptMsg(WhisperMessage( serialized=reply.serialize()))
 
@@ -52,14 +52,14 @@ class SessionCipherTest(unittest.TestCase):
         alicePlaintextMessages = []
 
         for i in range(0, 50):
-            alicePlaintextMessages.append(bytearray("смерть за смерть %s" % i))
-            aliceCiphertextMessages.append(aliceCipher.encrypt(bytearray(("смерть за смерть %s" % i))))
+            alicePlaintextMessages.append("смерть за смерть %s" % i)
+            aliceCiphertextMessages.append(aliceCipher.encrypt("смерть за смерть %s" % i))
 
         #shuffle(aliceCiphertextMessages)
         #shuffle(alicePlaintextMessages)
 
 
-        for i in range(0, len(aliceCiphertextMessages)/2):
+        for i in range(0, int(len(aliceCiphertextMessages)/2)):
             receivedPlaintext = bobCipher.decryptMsg(WhisperMessage(serialized=aliceCiphertextMessages[i].serialize()))
             self.assertEqual(receivedPlaintext, alicePlaintextMessages[i])
 

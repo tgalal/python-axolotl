@@ -7,7 +7,7 @@ from axolotl.invalidversionexception import InvalidVersionException
 from axolotl.invalidmessageexception import InvalidMessageException
 from axolotl.legacymessageexception import LegacyMessageException
 from axolotl.invalidkeyexception import InvalidKeyException
-import whisperprotos
+from . import whisperprotos
 class PreKeyWhisperMessage(CiphertextMessage):
     def __init__(self, messageVersion = None, registrationId = None, preKeyId = None,
                  signedPreKeyId = None, ecPublicBaseKey = None, identityKey = None, whisperMessage = None, serialized = None):
@@ -61,7 +61,7 @@ class PreKeyWhisperMessage(CiphertextMessage):
 
             versionBytes = ByteUtil.intsToByteHighAndLow(self.version, self.__class__.CURRENT_VERSION)
             messageBytes = builder.SerializeToString()
-            self.serialized = str(ByteUtil.combine(versionBytes, messageBytes))
+            self.serialized = bytes(ByteUtil.combine(versionBytes, messageBytes))
 
     def getMessageVersion(self):
         return self.version

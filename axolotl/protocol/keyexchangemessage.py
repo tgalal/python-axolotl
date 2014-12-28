@@ -37,7 +37,7 @@ class KeyExchangeMessage:
                 if self.version > CiphertextMessage.CURRENT_VERSION:
                     raise InvalidVersionException("Unkown version: %s" % self.version)
                 message = whisperprotos.KeyExchangeMessage()
-                message.ParseFromString(str(parts[1]))
+                message.ParseFromString(bytes(parts[1]))
 
                 if not message.HasField("id") or not message.HasField("baseKey")\
                     or not message.HasField("ratchetKey") or not message.HasField("identityKey")\
