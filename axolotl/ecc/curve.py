@@ -1,10 +1,8 @@
 import axolotl_curve25519 as _curve
 import os
 
-
 from .eckeypair import ECKeyPair
 from axolotl.invalidkeyexception import InvalidKeyException
-
 
 class Curve:
 

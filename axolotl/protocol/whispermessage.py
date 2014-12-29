@@ -22,7 +22,7 @@ class WhisperMessage(CiphertextMessage):
                 messageParts = ByteUtil.split(serialized, 1, len(serialized) - 1 - WhisperMessage.MAC_LENGTH,
                                               WhisperMessage.MAC_LENGTH)
                 version = messageParts[0][0]
-                message = bytes(messageParts[1])
+                message = messageParts[1]
                 mac = messageParts[2]
 
                 if ByteUtil.highBitsToInt(version) <= self.__class__.UNSUPPORTED_VERSION:

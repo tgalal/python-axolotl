@@ -7,6 +7,7 @@ from axolotl.invalidversionexception import InvalidVersionException
 from axolotl.invalidmessageexception import InvalidMessageException
 from axolotl.legacymessageexception import LegacyMessageException
 from axolotl.invalidkeyexception import InvalidKeyException
+from google.protobuf.message import DecodeError
 from . import whisperprotos
 class PreKeyWhisperMessage(CiphertextMessage):
     def __init__(self, messageVersion = None, registrationId = None, preKeyId = None,
@@ -37,7 +38,7 @@ class PreKeyWhisperMessage(CiphertextMessage):
 
                 self.identityKey    = IdentityKey(Curve.decodePoint(bytearray(preKeyWhisperMessage.identityKey), 0))
                 self.message =  WhisperMessage(serialized = preKeyWhisperMessage.message)
-            except InvalidKeyException | LegacyMessageException as e:
+            except (InvalidKeyException, LegacyMessageException, DecodeError) as e:
                 raise InvalidMessageException(e)
 
         else:
