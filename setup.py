@@ -5,7 +5,7 @@ deps = ["protobuf", "pycrypto"]
 
 setup(
     name='python-axolotl',
-    version="0.01",
+    version="0.1",
     install_requires = deps,
     license='GPLv3 License',
     author='Tarek Galal',
