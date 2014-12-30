@@ -1,7 +1,7 @@
 from __future__ import print_function
 from setuptools import setup
 
-deps = ["protobuf", "pycrypto"]
+deps = ["protobuf", "pycrypto", "python-axolotl-curve25519"]
 
 setup(
     name='python-axolotl',
