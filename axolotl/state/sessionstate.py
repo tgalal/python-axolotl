@@ -110,7 +110,7 @@ class SessionState:
         self.sessionStructure.receiverChains.extend([chain])
 
         if len(self.sessionStructure.receiverChains) > 5:
-            self.sessionStructure.receiverChains.remove(0)
+            del self.sessionStructure.receiverChains[0]
 
 
     def setSenderChain(self, ECKeyPair_senderRatchetKeyPair, chainKey):
