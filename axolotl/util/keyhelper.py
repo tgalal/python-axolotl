@@ -69,15 +69,23 @@ class KeyHelper:
 
         return results
 
-
     @staticmethod
     def generateSignedPreKey(identityKeyPair, signedPreKeyId):
         keyPair = Curve.generateKeyPair()
         signature = Curve.calculateSignature(identityKeyPair.getPrivateKey(), keyPair.getPublicKey().serialize())
 
-        #Curve.verifySignature(identityKeyPair.getPublicKey(), keyPair.getPublicKey().serialize(), signature)
-
         spk = SignedPreKeyRecord(signedPreKeyId, int(round(time.time() * 1000)), keyPair, signature)
 
         return spk
 
+    @staticmethod
+    def generateSenderSigningKey():
+        return Curve.generateKeyPair()
+
+    @staticmethod
+    def generateSenderKey():
+        return os.urandom(32)
+
+    @staticmethod
+    def generateSenderKeyId():
+        return KeyHelper.getRandomSequence(2147483647)
