@@ -4,25 +4,12 @@ from axolotl.tests.inmemoryprekeystore import InMemoryPreKeyStore
 from axolotl.tests.inmemorysessionstore import InMemorySessionStore
 from axolotl.tests.inmemorysignedprekeystore import InMemorySignedPreKeyStore
 
-from axolotl.tests.litesignedprekeystore import LiteSignedPreKeyStore
-from axolotl.tests.litesessionstore import LiteSessionStore
-from axolotl.tests.liteidentitykeystore import LiteIdentityKeyStore
-from axolotl.tests.liteprekeystore import LitePreKeyStore
-import sqlite3
-
 class InMemoryAxolotlStore(AxolotlStore):
     def __init__(self):
         self.identityKeyStore = InMemoryIdentityKeyStore()
         self.preKeyStore = InMemoryPreKeyStore()
         self.signedPreKeyStore = InMemorySignedPreKeyStore()
         self.sessionStore = InMemorySessionStore()
-
-        # conn = sqlite3.connect("/home/tarek/.yowsup/litetestdb")
-        # conn.text_factory = str
-        # self.identityKeyStore = LiteIdentityKeyStore(conn)
-        # self.preKeyStore =  LitePreKeyStore(conn)
-        # self.signedPreKeyStore = LiteSignedPreKeyStore(conn)
-        # self.sessionStore = LiteSessionStore(conn)
 
     def getIdentityKeyPair(self):
         return self.identityKeyStore.getIdentityKeyPair()
