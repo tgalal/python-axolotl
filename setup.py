@@ -1,11 +1,12 @@
 from __future__ import print_function
 from setuptools import setup, find_packages
+import axolotl
 
 deps = ["protobuf", "pycrypto", "python-axolotl-curve25519"]
 
 setup(
     name='python-axolotl',
-    version="0.1.2",
+    version=axolotl.__version__ ,
     packages= find_packages(),
     install_requires = deps,
     license='GPLv3 License',
