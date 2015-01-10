@@ -6,8 +6,6 @@ Overview from original author's:
  
 Read rest of of details [here](https://github.com/WhisperSystems/libaxolotl-android/blob/master/README.md).
 
-At the moment everything is ported except for groups which is still WIP.
-
 # Installation
 
 The library has some dependencies which are automatically pulled and installed if you use the instructions below for your OS
