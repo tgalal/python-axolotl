@@ -28,7 +28,7 @@ class ChainKey:
         return MessageKeys(keyMaterial.getCipherKey(), keyMaterial.getMacKey(), keyMaterial.getIv(), self.index)
 
     def getBaseMaterial(self, seedBytes):
-        mac = hmac.new(self.key, digestmod=hashlib.sha256)
-        mac.update(seedBytes)
+        mac = hmac.new(bytes(self.key), digestmod=hashlib.sha256)
+        mac.update(bytes(seedBytes))
         return mac.digest()
 

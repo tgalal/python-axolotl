@@ -26,5 +26,5 @@ class SenderChainKey:
         return self.chainKey
 
     def getDerivative(self, seed, key):
-        mac = hmac.new(key, seed, digestmod = hashlib.sha256)
+        mac = hmac.new(bytes(key), bytes(seed), digestmod = hashlib.sha256)
         return mac.digest()

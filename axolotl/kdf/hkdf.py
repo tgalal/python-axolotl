@@ -22,8 +22,8 @@ class HKDF(object):
         return self.expand(prk, info, outputLength)
 
     def extract(self, salt, inputKeyMaterial):
-        mac = hmac.new(salt, digestmod=hashlib.sha256)
-        mac.update(inputKeyMaterial)
+        mac = hmac.new(bytes(salt), digestmod=hashlib.sha256)
+        mac.update(bytes(inputKeyMaterial))
         return mac.digest()
 
     def expand(self, prk, info, outputSize):
@@ -35,9 +35,9 @@ class HKDF(object):
 
         for i in range(self.getIterationStartOffset(), iterations + self.getIterationStartOffset()):
             mac = hmac.new(prk, digestmod=hashlib.sha256)
-            mac.update(mixin)
+            mac.update(bytes(mixin))
             if info is not None:
-                mac.update(info)
+                mac.update(bytes(info))
             updateChr = chr(i % 256)
             mac.update(updateChr.encode())
 

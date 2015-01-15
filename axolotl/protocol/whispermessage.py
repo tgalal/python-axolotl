@@ -89,7 +89,7 @@ class WhisperMessage(CiphertextMessage):
             mac.update(senderIdentityKey.getPublicKey().serialize())
             mac.update(receiverIdentityKey.getPublicKey().serialize())
 
-        mac.update(serialized)
+        mac.update(bytes(serialized))
         fullMac = mac.digest()
         return ByteUtil.trim(fullMac, self.__class__.MAC_LENGTH)
 
