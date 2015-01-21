@@ -27,7 +27,7 @@ class SessionCipher:
         :type paddedMessage: str
         """
 
-        paddedMessage = bytearray(paddedMessage.encode() if sys.version_info > (3,0) else paddedMessage)
+        paddedMessage = bytearray(paddedMessage.encode() if sys.version_info >= (3,0) or type(paddedMessage) is unicode else paddedMessage)
         sessionRecord   = self.sessionStore.loadSession(self.recipientId, self.deviceId)
         sessionState    = sessionRecord.getSessionState()
         chainKey        = sessionState.getSenderChainKey()
