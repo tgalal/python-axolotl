@@ -10,6 +10,10 @@ from axolotl.nosessionexception import NoSessionException
 from axolotl.invalidmessageexception import InvalidMessageException
 from axolotl.duplicatemessagexception import DuplicateMessageException
 import sys
+
+if sys.version_info >= (3,0):
+    unicode = str
+
 class SessionCipher:
 
 
@@ -27,7 +31,9 @@ class SessionCipher:
         :type paddedMessage: str
         """
 
-        paddedMessage = bytearray(paddedMessage.encode() if sys.version_info >= (3,0) or type(paddedMessage) is unicode else paddedMessage)
+        paddedMessage = bytearray(paddedMessage.encode()
+                                  if (sys.version_info >= (3,0) and not type(paddedMessage) in (bytes, bytearray))
+                                     or type(paddedMessage) is unicode else paddedMessage)
         sessionRecord   = self.sessionStore.loadSession(self.recipientId, self.deviceId)
         sessionState    = sessionRecord.getSessionState()
         chainKey        = sessionState.getSenderChainKey()
