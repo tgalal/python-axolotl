@@ -1,7 +1,8 @@
-class BobAxolotlParameters:
+# -*- coding: utf-8 -*-
 
-    def __init__(self, ourIdentityKey, ourSignedPreKey,
-                 ourRatchetKey, ourOneTimePreKey,
+
+class BobAxolotlParameters:
+    def __init__(self, ourIdentityKey, ourSignedPreKey, ourRatchetKey, ourOneTimePreKey,
                  theirIdentityKey, theirBaseKey):
         """
         :type ourIdentityKey: IdentityKeyPair
@@ -11,7 +12,6 @@ class BobAxolotlParameters:
         :type theirIdentityKey: IdentityKey
         :type theirBaseKey: ECPublicKey
         """
-
         self.ourIdentityKey = ourIdentityKey
         self.ourSignedPreKey = ourSignedPreKey
         self.ourRatchetKey = ourRatchetKey
@@ -19,8 +19,8 @@ class BobAxolotlParameters:
         self.theirIdentityKey = theirIdentityKey
         self.theirBaseKey = theirBaseKey
 
-        if ourIdentityKey is None or ourSignedPreKey is None or ourRatchetKey is None\
-            or theirIdentityKey is None or theirBaseKey is None:
+        if ourIdentityKey is None or ourSignedPreKey is None or ourRatchetKey is None \
+                or theirIdentityKey is None or theirBaseKey is None:
             raise ValueError("Null value!")
 
     def getOurIdentityKey(self):
@@ -71,7 +71,7 @@ class BobAxolotlParameters:
             return self
 
         def setTheirIdentityKey(self, theirIdentityKey):
-            self.theirIdentityKey =theirIdentityKey
+            self.theirIdentityKey = theirIdentityKey
             return self
 
         def setTheirBaseKey(self, theirBaseKey):
@@ -81,6 +81,3 @@ class BobAxolotlParameters:
         def create(self):
             return BobAxolotlParameters(self.ourIdentityKey, self.ourSignedPreKey, self.ourRatchetKey,
                                         self.ourOneTimePreKey, self.theirIdentityKey, self.theirBaseKey)
-
-
-

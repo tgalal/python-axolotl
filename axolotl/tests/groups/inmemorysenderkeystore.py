@@ -1,5 +1,9 @@
-from axolotl.groups.state.senderkeystore import SenderKeyStore
-from axolotl.groups.state.senderkeyrecord import SenderKeyRecord
+# -*- coding: utf-8 -*-
+
+from ...groups.state.senderkeystore import SenderKeyStore
+from ...groups.state.senderkeyrecord import SenderKeyRecord
+
+
 class InMemorySenderKeyStore(SenderKeyStore):
     def __init__(self):
         self.store = {}

@@ -1,27 +1,29 @@
+# -*- coding: utf-8 -*-
+
 from .ciphertextmessage import CiphertextMessage
-from axolotl.util.byteutil import ByteUtil
-from axolotl.legacymessageexception import LegacyMessageException
-from axolotl.invalidmessageexception import InvalidMessageException
-from axolotl.invalidkeyexception import InvalidKeyException
-from axolotl.ecc.curve import Curve
+from ..util.byteutil import ByteUtil
+from ..legacymessageexception import LegacyMessageException
+from ..invalidmessageexception import InvalidMessageException
+from ..invalidkeyexception import InvalidKeyException
+from ..ecc.curve import Curve
 from . import whisperprotos
+
 
 class SenderKeyMessage(CiphertextMessage):
     SIGNATURE_LENGTH = 64
 
-    def __init__(self, keyId = None, iteration = None, ciphertext = None, signatureKey = None, serialized = None):
-        assert bool(keyId is not None and iteration is not None and ciphertext is not None and signatureKey is not None)\
-               ^ bool(serialized),\
-            "Either pass arguments or serialized data"
+    def __init__(self, keyId=None, iteration=None, ciphertext=None, signatureKey=None, serialized=None):
+        assert bool(keyId is not None and iteration is not None and ciphertext is not None and
+                    signatureKey is not None) ^ bool(serialized), "Either pass arguments or serialized data"
 
         if serialized:
             try:
-                messageParts = ByteUtil.split(serialized, 1, len(serialized)- 1 - self.__class__.SIGNATURE_LENGTH,
+                messageParts = ByteUtil.split(serialized, 1, len(serialized) - 1 - self.__class__.SIGNATURE_LENGTH,
                                               self.__class__.SIGNATURE_LENGTH)
 
-                version      = messageParts[0][0]
-                message      = messageParts[1]
-                signature    = messageParts[2]
+                version = messageParts[0][0]
+                message = messageParts[1]
+                signature = messageParts[2]
 
                 if ByteUtil.highBitsToInt(version) < 3:
                     raise LegacyMessageException("Legacy message: %s" % ByteUtil.highBitsToInt(version))
@@ -32,16 +34,16 @@ class SenderKeyMessage(CiphertextMessage):
                 senderKeyMessage = whisperprotos.SenderKeyMessage()
                 senderKeyMessage.ParseFromString(message)
 
-                if senderKeyMessage.id is None or senderKeyMessage.iteration is None\
-                    or senderKeyMessage.ciphertext is None:
+                if senderKeyMessage.id is None or senderKeyMessage.iteration is None or \
+                        senderKeyMessage.ciphertext is None:
                     raise InvalidMessageException("Incomplete message")
 
                 self.serialized = serialized
                 self.messageVersion = ByteUtil.highBitsToInt(version)
 
-                self.keyId          = senderKeyMessage.id
-                self.iteration      = senderKeyMessage.iteration
-                self.ciphertext     = senderKeyMessage.ciphertext
+                self.keyId = senderKeyMessage.id
+                self.iteration = senderKeyMessage.iteration
+                self.ciphertext = senderKeyMessage.ciphertext
             except Exception as e:
                 raise InvalidMessageException(e)
         else:
@@ -55,11 +57,11 @@ class SenderKeyMessage(CiphertextMessage):
 
             signature = self.getSignature(signatureKey, bytes(ByteUtil.combine(version, message)))
 
-            self.serialized       = ByteUtil.combine(version, message, signature)
-            self.messageVersion   = self.__class__.CURRENT_VERSION
-            self.keyId            = keyId
-            self.iteration        = iteration
-            self.ciphertext       = ciphertext
+            self.serialized = ByteUtil.combine(version, message, signature)
+            self.messageVersion = self.__class__.CURRENT_VERSION
+            self.keyId = keyId
+            self.iteration = iteration
+            self.ciphertext = ciphertext
 
     def getKeyId(self):
         return self.keyId
@@ -75,7 +77,9 @@ class SenderKeyMessage(CiphertextMessage):
         :type signatureKey: ECPublicKey
         """
         try:
-            parts = ByteUtil.split(self.serialized, len(self.serialized)- self.__class__.SIGNATURE_LENGTH, self.__class__.SIGNATURE_LENGTH)
+            parts = ByteUtil.split(self.serialized,
+                                   len(self.serialized) - self.__class__.SIGNATURE_LENGTH,
+                                   self.__class__.SIGNATURE_LENGTH)
 
             if not Curve.verifySignature(signatureKey, parts[0], parts[1]):
                 raise InvalidMessageException("Invalid signature!")

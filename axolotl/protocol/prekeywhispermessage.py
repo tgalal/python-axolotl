@@ -1,18 +1,23 @@
+# -*- coding: utf-8 -*-
+
+from google.protobuf.message import DecodeError
+
 from .ciphertextmessage import CiphertextMessage
 from ..util.byteutil import ByteUtil
 from ..ecc.curve import Curve
 from ..identitykey import IdentityKey
 from .whispermessage import WhisperMessage
-from axolotl.invalidversionexception import InvalidVersionException
-from axolotl.invalidmessageexception import InvalidMessageException
-from axolotl.legacymessageexception import LegacyMessageException
-from axolotl.invalidkeyexception import InvalidKeyException
-from google.protobuf.message import DecodeError
+from ..invalidversionexception import InvalidVersionException
+from ..invalidmessageexception import InvalidMessageException
+from ..legacymessageexception import LegacyMessageException
+from ..invalidkeyexception import InvalidKeyException
 from . import whisperprotos
-class PreKeyWhisperMessage(CiphertextMessage):
-    def __init__(self, messageVersion = None, registrationId = None, preKeyId = None,
-                 signedPreKeyId = None, ecPublicBaseKey = None, identityKey = None, whisperMessage = None, serialized = None):
 
+
+class PreKeyWhisperMessage(CiphertextMessage):
+    def __init__(self, messageVersion=None, registrationId=None, preKeyId=None,
+                 signedPreKeyId=None, ecPublicBaseKey=None, identityKey=None,
+                 whisperMessage=None, serialized=None):
         if serialized:
             try:
                 self.version = ByteUtil.highBitsToInt(serialized[0])
@@ -22,22 +27,25 @@ class PreKeyWhisperMessage(CiphertextMessage):
                 preKeyWhisperMessage = whisperprotos.PreKeyWhisperMessage()
                 preKeyWhisperMessage.ParseFromString(serialized[1:])
 
-                if (self.version == 2 and preKeyWhisperMessage.preKeyId is None) or\
-                    (self.version == 3 and preKeyWhisperMessage.signedPreKeyId is None) or\
-                    not preKeyWhisperMessage.baseKey or\
-                    not preKeyWhisperMessage.identityKey or \
-                    not preKeyWhisperMessage.message:
-
+                if (self.version == 2 and preKeyWhisperMessage.preKeyId is None) or \
+                        (self.version == 3 and preKeyWhisperMessage.signedPreKeyId is None) or \
+                        not preKeyWhisperMessage.baseKey or \
+                        not preKeyWhisperMessage.identityKey or \
+                        not preKeyWhisperMessage.message:
                     raise InvalidMessageException("Incomplete message")
 
                 self.serialized = serialized
                 self.registrationId = preKeyWhisperMessage.registrationId
-                self.preKeyId       = preKeyWhisperMessage.preKeyId
-                self.signedPreKeyId = preKeyWhisperMessage.signedPreKeyId if preKeyWhisperMessage.signedPreKeyId is not None else -1
-                self.baseKey        = Curve.decodePoint(bytearray(preKeyWhisperMessage.baseKey), 0)
+                self.preKeyId = preKeyWhisperMessage.preKeyId
+                if preKeyWhisperMessage.signedPreKeyId is not None:
+                    self.signedPreKeyId = preKeyWhisperMessage.signedPreKeyId
+                else:
+                    self.signedPreKeyId = -1
 
-                self.identityKey    = IdentityKey(Curve.decodePoint(bytearray(preKeyWhisperMessage.identityKey), 0))
-                self.message =  WhisperMessage(serialized = preKeyWhisperMessage.message)
+                self.baseKey = Curve.decodePoint(bytearray(preKeyWhisperMessage.baseKey), 0)
+
+                self.identityKey = IdentityKey(Curve.decodePoint(bytearray(preKeyWhisperMessage.identityKey), 0))
+                self.message = WhisperMessage(serialized=preKeyWhisperMessage.message)
             except (InvalidKeyException, LegacyMessageException, DecodeError) as e:
                 raise InvalidMessageException(e)
 

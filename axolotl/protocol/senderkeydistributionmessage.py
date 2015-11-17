@@ -1,5 +1,9 @@
+# -*- coding: utf-8 -*-
+
 from .ciphertextmessage import CiphertextMessage
 from . import whisperprotos
+
+
 class SenderKeyDistributionMessage(CiphertextMessage):
     def __init__(self, id, iteration, chainKey, signatureKey):
         """
@@ -8,7 +12,6 @@ class SenderKeyDistributionMessage(CiphertextMessage):
         :type chainKey: bytearray
         :type signatureKey: ECPublicKey
         """
-
         self.id = id
         self.iteration = iteration
         self.chainKey = chainKey
@@ -16,7 +19,7 @@ class SenderKeyDistributionMessage(CiphertextMessage):
         self.serialized = whisperprotos.SenderKeyDistributionMessage()
         self.serialized.id = id
         self.serialized.iteration = iteration
-        self.serialized.chainKey= chainKey
+        self.serialized.chainKey = chainKey
         self.serialized.signingKey = signatureKey.serialize()
 
     def serialize(self):

@@ -1,5 +1,7 @@
-class ByteUtil:
+# -*- coding: utf-8 -*-
 
+
+class ByteUtil:
     @staticmethod
     def combine(*args):
         baos = bytearray()
@@ -21,7 +23,7 @@ class ByteUtil:
     #     return parts
 
     @staticmethod
-    def split(inp, firstLength, secondLength, thirdLength = None):
+    def split(inp, firstLength, secondLength, thirdLength=None):
         parts = []
         parts.append(inp[:firstLength])
         parts.append(inp[firstLength:firstLength + secondLength])
@@ -29,7 +31,6 @@ class ByteUtil:
             parts.append(inp[firstLength + secondLength: firstLength + secondLength + thirdLength])
 
         return parts
-
 
     @staticmethod
     def trim(inp, length):
