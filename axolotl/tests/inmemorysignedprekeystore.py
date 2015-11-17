@@ -1,12 +1,16 @@
-from axolotl.state.signedprekeystore import SignedPreKeyStore
-from axolotl.state.signedprekeyrecord import SignedPreKeyRecord
-from axolotl.invalidkeyidexception import InvalidKeyIdException
+# -*- coding: utf-8 -*-
+
+from ..state.signedprekeystore import SignedPreKeyStore
+from ..state.signedprekeyrecord import SignedPreKeyRecord
+from ..invalidkeyidexception import InvalidKeyIdException
+
+
 class InMemorySignedPreKeyStore(SignedPreKeyStore):
     def __init__(self):
         self.store = {}
 
     def loadSignedPreKey(self, signedPreKeyId):
-        if not signedPreKeyId in self.store:
+        if signedPreKeyId not in self.store:
             raise InvalidKeyIdException("No such signedprekeyrecord! %s " % signedPreKeyId)
 
         return SignedPreKeyRecord(serialized=self.store[signedPreKeyId])

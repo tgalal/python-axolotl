@@ -1,6 +1,10 @@
+# -*- coding: utf-8 -*-
+
 from .ecc.curve import Curve
+
+
 class IdentityKey:
-    def __init__(self, ecPubKeyOrBytes, offset = None):
+    def __init__(self, ecPubKeyOrBytes, offset=None):
         if offset is None:
             self.publicKey = ecPubKeyOrBytes
         else:
@@ -20,4 +24,3 @@ class IdentityKey:
 
     def hashCode(self):
         raise Exception("IMPL ME")
-

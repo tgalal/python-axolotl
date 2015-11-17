@@ -1,42 +1,55 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
+
 import unittest
 import time
-from axolotl.sessionbuilder import SessionBuilder
-from axolotl.sessioncipher import SessionCipher
-from axolotl.ecc.curve import Curve
-from axolotl.protocol.ciphertextmessage import CiphertextMessage
-from axolotl.protocol.whispermessage import WhisperMessage
-from axolotl.protocol.prekeywhispermessage import PreKeyWhisperMessage
-from axolotl.state.prekeybundle import PreKeyBundle
-from axolotl.tests.inmemoryaxolotlstore import InMemoryAxolotlStore
-from axolotl.state.prekeyrecord import PreKeyRecord
-from axolotl.state.signedprekeyrecord import SignedPreKeyRecord
-from axolotl.tests.inmemoryidentitykeystore import InMemoryIdentityKeyStore
-from axolotl.protocol.keyexchangemessage import KeyExchangeMessage
-from axolotl.untrustedidentityexception import UntrustedIdentityException
+
+from ..sessionbuilder import SessionBuilder
+from ..sessioncipher import SessionCipher
+from ..ecc.curve import Curve
+from ..protocol.ciphertextmessage import CiphertextMessage
+from ..protocol.whispermessage import WhisperMessage
+from ..protocol.prekeywhispermessage import PreKeyWhisperMessage
+from ..state.prekeybundle import PreKeyBundle
+from ..tests.inmemoryaxolotlstore import InMemoryAxolotlStore
+from ..state.prekeyrecord import PreKeyRecord
+from ..state.signedprekeyrecord import SignedPreKeyRecord
+from ..tests.inmemoryidentitykeystore import InMemoryIdentityKeyStore
+from ..protocol.keyexchangemessage import KeyExchangeMessage
+from ..untrustedidentityexception import UntrustedIdentityException
+
+
 class SessionBuilderTest(unittest.TestCase):
     ALICE_RECIPIENT_ID = 5
-    BOB_RECIPIENT_ID   = 2
+    BOB_RECIPIENT_ID = 2
 
     def test_basicPreKeyV2(self):
         aliceStore = InMemoryAxolotlStore()
-        aliceSessionBuilder = SessionBuilder(aliceStore, aliceStore, aliceStore, aliceStore, self.__class__.BOB_RECIPIENT_ID, 1)
+        aliceSessionBuilder = SessionBuilder(aliceStore,
+                                             aliceStore,
+                                             aliceStore,
+                                             aliceStore,
+                                             self.__class__.BOB_RECIPIENT_ID,
+                                             1)
 
-        bobStore      = InMemoryAxolotlStore()
+        bobStore = InMemoryAxolotlStore()
         bobPreKeyPair = Curve.generateKeyPair()
-        bobPreKey     = PreKeyBundle(bobStore.getLocalRegistrationId(), 1,
-                                                  31337, bobPreKeyPair.getPublicKey(),
-                                                  0, None, None,
-                                                  bobStore.getIdentityKeyPair().getPublicKey())
+        bobPreKey = PreKeyBundle(bobStore.getLocalRegistrationId(), 1, 31337, bobPreKeyPair.getPublicKey(),
+                                 0, None, None, bobStore.getIdentityKeyPair().getPublicKey())
 
         aliceSessionBuilder.processPreKeyBundle(bobPreKey)
 
         self.assertTrue(aliceStore.containsSession(self.__class__.BOB_RECIPIENT_ID, 1))
-        self.assertEqual(aliceStore.loadSession(self.__class__.BOB_RECIPIENT_ID, 1).getSessionState().getSessionVersion(), 2)
+        self.assertEqual(aliceStore.loadSession(self.__class__.BOB_RECIPIENT_ID,
+                                                1).getSessionState().getSessionVersion(), 2)
 
-        originalMessage    = "L'homme est condamné à être libre"
-        aliceSessionCipher = SessionCipher(aliceStore, aliceStore, aliceStore, aliceStore, self.__class__.BOB_RECIPIENT_ID, 1)
-        outgoingMessage    = aliceSessionCipher.encrypt(originalMessage)
+        originalMessage = "L'homme est condamné à être libre"
+        aliceSessionCipher = SessionCipher(aliceStore,
+                                           aliceStore,
+                                           aliceStore,
+                                           aliceStore,
+                                           self.__class__.BOB_RECIPIENT_ID,
+                                           1)
+        outgoingMessage = aliceSessionCipher.encrypt(originalMessage)
 
         self.assertTrue(outgoingMessage.getType() == CiphertextMessage.PREKEY_TYPE)
 
@@ -44,12 +57,12 @@ class SessionBuilderTest(unittest.TestCase):
         bobStore.storePreKey(31337, PreKeyRecord(bobPreKey.getPreKeyId(), bobPreKeyPair))
 
         bobSessionCipher = SessionCipher(bobStore, bobStore, bobStore, bobStore, self.__class__.ALICE_RECIPIENT_ID, 1)
-        plaintext        = bobSessionCipher.decryptPkmsg(incomingMessage)
+        plaintext = bobSessionCipher.decryptPkmsg(incomingMessage)
 
         self.assertTrue(bobStore.containsSession(self.__class__.ALICE_RECIPIENT_ID, 1))
-        self.assertTrue(bobStore.loadSession(self.__class__.ALICE_RECIPIENT_ID, 1).getSessionState().getSessionVersion() == 2)
+        self.assertTrue(bobStore.loadSession(self.__class__.ALICE_RECIPIENT_ID,
+                        1).getSessionState().getSessionVersion() == 2)
         self.assertEqual(originalMessage, plaintext)
-
 
         bobOutgoingMessage = bobSessionCipher.encrypt(originalMessage)
         self.assertTrue(bobOutgoingMessage.getType() == CiphertextMessage.WHISPER_TYPE)
@@ -59,9 +72,19 @@ class SessionBuilderTest(unittest.TestCase):
 
         self.runInteraction(aliceStore, bobStore)
 
-        aliceStore          = InMemoryAxolotlStore()
-        aliceSessionBuilder = SessionBuilder(aliceStore, aliceStore, aliceStore, aliceStore, self.__class__.BOB_RECIPIENT_ID, 1)
-        aliceSessionCipher  = SessionCipher(aliceStore, aliceStore, aliceStore, aliceStore, self.__class__.BOB_RECIPIENT_ID, 1)
+        aliceStore = InMemoryAxolotlStore()
+        aliceSessionBuilder = SessionBuilder(aliceStore,
+                                             aliceStore,
+                                             aliceStore,
+                                             aliceStore,
+                                             self.__class__.BOB_RECIPIENT_ID,
+                                             1)
+        aliceSessionCipher = SessionCipher(aliceStore,
+                                           aliceStore,
+                                           aliceStore,
+                                           aliceStore,
+                                           self.__class__.BOB_RECIPIENT_ID,
+                                           1)
 
         bobPreKeyPair = Curve.generateKeyPair()
         bobPreKey = PreKeyBundle(bobStore.getLocalRegistrationId(),
@@ -72,11 +95,12 @@ class SessionBuilderTest(unittest.TestCase):
         aliceSessionBuilder.processPreKeyBundle(bobPreKey)
 
         outgoingMessage = aliceSessionCipher.encrypt(originalMessage)
-        try :
+        try:
             bobSessionCipher.decryptPkmsg(PreKeyWhisperMessage(serialized=outgoingMessage.serialize()))
             raise AssertionError("shouldn't be trusted!")
         except Exception:
-            bobStore.saveIdentity(self.__class__.ALICE_RECIPIENT_ID, PreKeyWhisperMessage(serialized=outgoingMessage.serialize()).getIdentityKey())
+            bobStore.saveIdentity(self.__class__.ALICE_RECIPIENT_ID,
+                                  PreKeyWhisperMessage(serialized=outgoingMessage.serialize()).getIdentityKey())
 
         plaintext = bobSessionCipher.decryptPkmsg(PreKeyWhisperMessage(serialized=outgoingMessage.serialize()))
         self.assertEqual(plaintext, originalMessage)
@@ -89,41 +113,52 @@ class SessionBuilderTest(unittest.TestCase):
             aliceSessionBuilder.processPreKeyBundle(bobPreKey)
             raise AssertionError("shouldn't be trusted")
         except Exception:
-            #good
+            # good
             pass
 
         return
 
-
     def test_basicPreKeyV3(self):
         aliceStore = InMemoryAxolotlStore()
-        aliceSessionBuilder = SessionBuilder(aliceStore, aliceStore, aliceStore, aliceStore, self.__class__.BOB_RECIPIENT_ID, 1)
+        aliceSessionBuilder = SessionBuilder(aliceStore,
+                                             aliceStore,
+                                             aliceStore,
+                                             aliceStore,
+                                             self.__class__.BOB_RECIPIENT_ID,
+                                             1)
 
-        bobStore =   InMemoryAxolotlStore()
+        bobStore = InMemoryAxolotlStore()
         bobPreKeyPair = Curve.generateKeyPair()
         bobSignedPreKeyPair = Curve.generateKeyPair()
         bobSignedPreKeySignature = Curve.calculateSignature(bobStore.getIdentityKeyPair().getPrivateKey(),
-                                                                           bobSignedPreKeyPair.getPublicKey().serialize())
+                                                            bobSignedPreKeyPair.getPublicKey().serialize())
 
-        bobPreKey = PreKeyBundle(bobStore.getLocalRegistrationId(), 1,
-                                              31337, bobPreKeyPair.getPublicKey(),
-                                              22, bobSignedPreKeyPair.getPublicKey(),
-                                              bobSignedPreKeySignature,
-                                              bobStore.getIdentityKeyPair().getPublicKey())
+        bobPreKey = PreKeyBundle(bobStore.getLocalRegistrationId(), 1, 31337, bobPreKeyPair.getPublicKey(),
+                                 22, bobSignedPreKeyPair.getPublicKey(), bobSignedPreKeySignature,
+                                 bobStore.getIdentityKeyPair().getPublicKey())
 
         aliceSessionBuilder.processPreKeyBundle(bobPreKey)
         self.assertTrue(aliceStore.containsSession(self.__class__.BOB_RECIPIENT_ID, 1))
-        self.assertTrue(aliceStore.loadSession(self.__class__.BOB_RECIPIENT_ID, 1).getSessionState().getSessionVersion() == 3)
+        self.assertTrue(aliceStore.loadSession(self.__class__.BOB_RECIPIENT_ID,
+                                               1).getSessionState().getSessionVersion() == 3)
 
-        originalMessage    = "L'homme est condamné à être libre"
-        aliceSessionCipher = SessionCipher(aliceStore, aliceStore, aliceStore, aliceStore, self.__class__.BOB_RECIPIENT_ID, 1)
-        outgoingMessage    = aliceSessionCipher.encrypt(originalMessage)
+        originalMessage = "L'homme est condamné à être libre"
+        aliceSessionCipher = SessionCipher(aliceStore,
+                                           aliceStore,
+                                           aliceStore,
+                                           aliceStore,
+                                           self.__class__.BOB_RECIPIENT_ID,
+                                           1)
+        outgoingMessage = aliceSessionCipher.encrypt(originalMessage)
 
         self.assertTrue(outgoingMessage.getType() == CiphertextMessage.PREKEY_TYPE)
 
         incomingMessage = PreKeyWhisperMessage(serialized=outgoingMessage.serialize())
         bobStore.storePreKey(31337, PreKeyRecord(bobPreKey.getPreKeyId(), bobPreKeyPair))
-        bobStore.storeSignedPreKey(22, SignedPreKeyRecord(22, int(time.time() * 1000), bobSignedPreKeyPair, bobSignedPreKeySignature))
+        bobStore.storeSignedPreKey(22, SignedPreKeyRecord(22,
+                                                          int(time.time() * 1000),
+                                                          bobSignedPreKeyPair,
+                                                          bobSignedPreKeySignature))
 
         bobSessionCipher = SessionCipher(bobStore, bobStore, bobStore, bobStore, self.__class__.ALICE_RECIPIENT_ID, 1)
 
@@ -134,8 +169,10 @@ class SessionBuilderTest(unittest.TestCase):
 
         self.assertTrue(bobStore.containsSession(self.__class__.ALICE_RECIPIENT_ID, 1))
 
-        self.assertTrue(bobStore.loadSession(self.__class__.ALICE_RECIPIENT_ID, 1).getSessionState().getSessionVersion() == 3)
-        self.assertTrue(bobStore.loadSession(self.__class__.ALICE_RECIPIENT_ID, 1).getSessionState().getAliceBaseKey() != None)
+        self.assertTrue(bobStore.loadSession(self.__class__.ALICE_RECIPIENT_ID,
+                                             1).getSessionState().getSessionVersion() == 3)
+        self.assertTrue(bobStore.loadSession(self.__class__.ALICE_RECIPIENT_ID,
+                                             1).getSessionState().getAliceBaseKey() is not None)
         self.assertEqual(originalMessage, plaintext)
 
         bobOutgoingMessage = bobSessionCipher.encrypt(originalMessage)
@@ -146,20 +183,33 @@ class SessionBuilderTest(unittest.TestCase):
 
         self.runInteraction(aliceStore, bobStore)
 
-        aliceStore          = InMemoryAxolotlStore()
-        aliceSessionBuilder = SessionBuilder(aliceStore, aliceStore, aliceStore, aliceStore, self.__class__.BOB_RECIPIENT_ID, 1)
-        aliceSessionCipher  = SessionCipher(aliceStore, aliceStore, aliceStore, aliceStore, self.__class__.BOB_RECIPIENT_ID, 1)
+        aliceStore = InMemoryAxolotlStore()
+        aliceSessionBuilder = SessionBuilder(aliceStore,
+                                             aliceStore,
+                                             aliceStore,
+                                             aliceStore,
+                                             self.__class__.BOB_RECIPIENT_ID,
+                                             1)
+        aliceSessionCipher = SessionCipher(aliceStore,
+                                           aliceStore,
+                                           aliceStore,
+                                           aliceStore,
+                                           self.__class__.BOB_RECIPIENT_ID,
+                                           1)
 
-        bobPreKeyPair            = Curve.generateKeyPair()
-        bobSignedPreKeyPair      = Curve.generateKeyPair()
-        bobSignedPreKeySignature = Curve.calculateSignature(bobStore.getIdentityKeyPair().getPrivateKey(), bobSignedPreKeyPair.getPublicKey().serialize())
-        bobPreKey = PreKeyBundle(bobStore.getLocalRegistrationId(),
-                                 1, 31338, bobPreKeyPair.getPublicKey(),
+        bobPreKeyPair = Curve.generateKeyPair()
+        bobSignedPreKeyPair = Curve.generateKeyPair()
+        bobSignedPreKeySignature = Curve.calculateSignature(bobStore.getIdentityKeyPair().getPrivateKey(),
+                                                            bobSignedPreKeyPair.getPublicKey().serialize())
+        bobPreKey = PreKeyBundle(bobStore.getLocalRegistrationId(), 1, 31338, bobPreKeyPair.getPublicKey(),
                                  23, bobSignedPreKeyPair.getPublicKey(), bobSignedPreKeySignature,
                                  bobStore.getIdentityKeyPair().getPublicKey())
 
         bobStore.storePreKey(31338, PreKeyRecord(bobPreKey.getPreKeyId(), bobPreKeyPair))
-        bobStore.storeSignedPreKey(23, SignedPreKeyRecord(23, int(time.time() * 1000), bobSignedPreKeyPair, bobSignedPreKeySignature))
+        bobStore.storeSignedPreKey(23, SignedPreKeyRecord(23,
+                                                          int(time.time() * 1000),
+                                                          bobSignedPreKeyPair,
+                                                          bobSignedPreKeySignature))
         aliceSessionBuilder.processPreKeyBundle(bobPreKey)
 
         outgoingMessage = aliceSessionCipher.encrypt(originalMessage)
@@ -168,89 +218,102 @@ class SessionBuilderTest(unittest.TestCase):
             plaintext = bobSessionCipher.decryptPkmsg(PreKeyWhisperMessage(serialized=outgoingMessage))
             raise AssertionError("shouldn't be trusted!")
         except Exception:
-            bobStore.saveIdentity(self.__class__.ALICE_RECIPIENT_ID, PreKeyWhisperMessage(serialized=outgoingMessage.serialize()).getIdentityKey())
+            bobStore.saveIdentity(self.__class__.ALICE_RECIPIENT_ID,
+                                  PreKeyWhisperMessage(serialized=outgoingMessage.serialize()).getIdentityKey())
 
         plaintext = bobSessionCipher.decryptPkmsg(PreKeyWhisperMessage(serialized=outgoingMessage.serialize()))
         self.assertEqual(plaintext, originalMessage)
 
-
-        bobPreKey = PreKeyBundle(bobStore.getLocalRegistrationId(), 1,
-                                 31337, Curve.generateKeyPair().getPublicKey(),
-                                 23, bobSignedPreKeyPair.getPublicKey(), bobSignedPreKeySignature,
-                                 aliceStore.getIdentityKeyPair().getPublicKey())
+        bobPreKey = PreKeyBundle(bobStore.getLocalRegistrationId(), 1, 31337,
+                                 Curve.generateKeyPair().getPublicKey(), 23, bobSignedPreKeyPair.getPublicKey(),
+                                 bobSignedPreKeySignature, aliceStore.getIdentityKeyPair().getPublicKey())
         try:
             aliceSessionBuilder.process(bobPreKey)
             raise AssertionError("shouldn't be trusted!")
         except Exception:
-            #good
+            # good
             pass
 
     def test_badSignedPreKeySignature(self):
-        aliceStore          = InMemoryAxolotlStore()
+        aliceStore = InMemoryAxolotlStore()
         aliceSessionBuilder = SessionBuilder(aliceStore, aliceStore, aliceStore, aliceStore,
                                              self.__class__.BOB_RECIPIENT_ID, 1)
 
         bobIdentityKeyStore = InMemoryIdentityKeyStore()
 
-        bobPreKeyPair            = Curve.generateKeyPair()
-        bobSignedPreKeyPair      = Curve.generateKeyPair()
+        bobPreKeyPair = Curve.generateKeyPair()
+        bobSignedPreKeyPair = Curve.generateKeyPair()
         bobSignedPreKeySignature = Curve.calculateSignature(bobIdentityKeyStore.getIdentityKeyPair().getPrivateKey(),
-                                                                  bobSignedPreKeyPair.getPublicKey().serialize())
+                                                            bobSignedPreKeyPair.getPublicKey().serialize())
 
         for i in range(0, len(bobSignedPreKeySignature) * 8):
             modifiedSignature = bytearray(bobSignedPreKeySignature[:])
             modifiedSignature[int(i/8)] ^= 0x01 << (i % 8)
 
-            bobPreKey = PreKeyBundle(bobIdentityKeyStore.getLocalRegistrationId(), 1,
-                                                31337, bobPreKeyPair.getPublicKey(),
-                                                22, bobSignedPreKeyPair.getPublicKey(), modifiedSignature,
-                                                bobIdentityKeyStore.getIdentityKeyPair().getPublicKey())
+            bobPreKey = PreKeyBundle(bobIdentityKeyStore.getLocalRegistrationId(), 1, 31337,
+                                     bobPreKeyPair.getPublicKey(), 22, bobSignedPreKeyPair.getPublicKey(),
+                                     modifiedSignature, bobIdentityKeyStore.getIdentityKeyPair().getPublicKey())
 
             try:
                 aliceSessionBuilder.processPreKeyBundle(bobPreKey)
             except Exception:
+                # good
                 pass
-                #good
-        bobPreKey = PreKeyBundle(bobIdentityKeyStore.getLocalRegistrationId(), 1,
-                                              31337, bobPreKeyPair.getPublicKey(),
-                                              22, bobSignedPreKeyPair.getPublicKey(), bobSignedPreKeySignature,
-                                              bobIdentityKeyStore.getIdentityKeyPair().getPublicKey())
+        bobPreKey = PreKeyBundle(bobIdentityKeyStore.getLocalRegistrationId(), 1, 31337,
+                                 bobPreKeyPair.getPublicKey(), 22, bobSignedPreKeyPair.getPublicKey(),
+                                 bobSignedPreKeySignature, bobIdentityKeyStore.getIdentityKeyPair().getPublicKey())
 
         aliceSessionBuilder.processPreKeyBundle(bobPreKey)
 
-
     def test_basicKeyExchange(self):
-        aliceStore          = InMemoryAxolotlStore()
-        aliceSessionBuilder = SessionBuilder(aliceStore, aliceStore, aliceStore, aliceStore, self.__class__.BOB_RECIPIENT_ID, 1)
+        aliceStore = InMemoryAxolotlStore()
+        aliceSessionBuilder = SessionBuilder(aliceStore,
+                                             aliceStore,
+                                             aliceStore,
+                                             aliceStore,
+                                             self.__class__.BOB_RECIPIENT_ID,
+                                             1)
 
-        bobStore          = InMemoryAxolotlStore()
-        bobSessionBuilder = SessionBuilder(bobStore, bobStore, bobStore, bobStore, self.__class__.ALICE_RECIPIENT_ID, 1)
+        bobStore = InMemoryAxolotlStore()
+        bobSessionBuilder = SessionBuilder(bobStore,
+                                           bobStore,
+                                           bobStore,
+                                           bobStore,
+                                           self.__class__.ALICE_RECIPIENT_ID,
+                                           1)
 
-        aliceKeyExchangeMessage      = aliceSessionBuilder.processInitKeyExchangeMessage()
-        self.assertTrue(aliceKeyExchangeMessage != None)
+        aliceKeyExchangeMessage = aliceSessionBuilder.processInitKeyExchangeMessage()
+        self.assertTrue(aliceKeyExchangeMessage is not None)
 
         aliceKeyExchangeMessageBytes = aliceKeyExchangeMessage.serialize()
-        bobKeyExchangeMessage        = bobSessionBuilder.processKeyExchangeMessage(KeyExchangeMessage(serialized=aliceKeyExchangeMessageBytes))
+        bobKeyExchangeMessage = bobSessionBuilder.processKeyExchangeMessage(KeyExchangeMessage(
+            serialized=aliceKeyExchangeMessageBytes))
 
-        self.assertTrue(bobKeyExchangeMessage != None)
+        self.assertTrue(bobKeyExchangeMessage is not None)
 
         bobKeyExchangeMessageBytes = bobKeyExchangeMessage.serialize()
-        response                   = aliceSessionBuilder.processKeyExchangeMessage(KeyExchangeMessage(serialized=bobKeyExchangeMessageBytes))
+        response = aliceSessionBuilder.processKeyExchangeMessage(KeyExchangeMessage(
+            serialized=bobKeyExchangeMessageBytes))
 
-        self.assertTrue(response == None)
+        self.assertTrue(response is None)
         self.assertTrue(aliceStore.containsSession(self.__class__.BOB_RECIPIENT_ID, 1))
         self.assertTrue(bobStore.containsSession(self.__class__.ALICE_RECIPIENT_ID, 1))
 
         self.runInteraction(aliceStore, bobStore)
 
-        aliceStore              = InMemoryAxolotlStore()
-        aliceSessionBuilder     = SessionBuilder(aliceStore, aliceStore, aliceStore, aliceStore, self.__class__.BOB_RECIPIENT_ID, 1)
+        aliceStore = InMemoryAxolotlStore()
+        aliceSessionBuilder = SessionBuilder(aliceStore,
+                                             aliceStore,
+                                             aliceStore,
+                                             aliceStore,
+                                             self.__class__.BOB_RECIPIENT_ID,
+                                             1)
         aliceKeyExchangeMessage = aliceSessionBuilder.processInitKeyExchangeMessage()
 
         try:
             bobKeyExchangeMessage = bobSessionBuilder.processKeyExchangeMessage(aliceKeyExchangeMessage)
             raise AssertionError("This identity shouldn't be trusted!")
-        except UntrustedIdentityException as uie:
+        except UntrustedIdentityException:
             bobStore.saveIdentity(self.__class__.ALICE_RECIPIENT_ID, aliceKeyExchangeMessage.getIdentityKey())
         bobKeyExchangeMessage = bobSessionBuilder.processKeyExchangeMessage(aliceKeyExchangeMessage)
 
@@ -263,9 +326,13 @@ class SessionBuilderTest(unittest.TestCase):
         :type aliceStore: AxolotlStore
         :type  bobStore: AxolotlStore
         """
-
-        aliceSessionCipher = SessionCipher(aliceStore, aliceStore, aliceStore, aliceStore, self.__class__.BOB_RECIPIENT_ID, 1)
-        bobSessionCipher   = SessionCipher(bobStore, bobStore, bobStore, bobStore, self.__class__.ALICE_RECIPIENT_ID, 1)
+        aliceSessionCipher = SessionCipher(aliceStore,
+                                           aliceStore,
+                                           aliceStore,
+                                           aliceStore,
+                                           self.__class__.BOB_RECIPIENT_ID,
+                                           1)
+        bobSessionCipher = SessionCipher(bobStore, bobStore, bobStore, bobStore, self.__class__.ALICE_RECIPIENT_ID, 1)
 
         originalMessage = "smert ze smert"
         aliceMessage = aliceSessionCipher.encrypt(originalMessage)
@@ -289,7 +356,6 @@ class SessionBuilderTest(unittest.TestCase):
             aliceLoopingMessage = aliceSessionCipher.encrypt(loopingMessage)
             loopingPlaintext = bobSessionCipher.decryptMsg(WhisperMessage(serialized=aliceLoopingMessage.serialize()))
             self.assertEqual(loopingPlaintext, loopingMessage)
-
 
         for i in range(0, 10):
             loopingMessage = "What do we mean by saying that existence precedes essence? " \
@@ -325,5 +391,6 @@ class SessionBuilderTest(unittest.TestCase):
             self.assertEqual(loopingPlaintext, loopingMessage)
 
         for aliceOutOfOrderMessage in aliceOutOfOrderMessages:
-            outOfOrderPlaintext = bobSessionCipher.decryptMsg(WhisperMessage(serialized=aliceOutOfOrderMessage[1].serialize()))
+            outOfOrderPlaintext = bobSessionCipher.decryptMsg(WhisperMessage(
+                serialized=aliceOutOfOrderMessage[1].serialize()))
             self.assertEqual(outOfOrderPlaintext, aliceOutOfOrderMessage[0])

@@ -1,20 +1,23 @@
+# -*- cosing: utf-8 -*-
+
+import hmac
+import hashlib
+
 from .ciphertextmessage import CiphertextMessage
 from ..util.byteutil import ByteUtil
 from ..ecc.curve import Curve
 from . import whisperprotos
-import hmac
-import hashlib
-from axolotl.legacymessageexception import LegacyMessageException
-from axolotl.invalidmessageexception import InvalidMessageException
-from axolotl.invalidkeyexception import InvalidKeyException
+from ..legacymessageexception import LegacyMessageException
+from ..invalidmessageexception import InvalidMessageException
+from ..invalidkeyexception import InvalidKeyException
+
+
 class WhisperMessage(CiphertextMessage):
     MAC_LENGTH = 8
 
-    def __init__(self, messageVersion = None, macKey = None, ECPublicKey_senderRatchetKey = None,
-                 counter = None, previousCounter = None, ciphertext = None,
-                 senderIdentityKey = None, receiverIdentityKey = None,
-                 serialized = None):
-
+    def __init__(self, messageVersion=None, macKey=None, ECPublicKey_senderRatchetKey=None,
+                 counter=None, previousCounter=None, ciphertext=None, senderIdentityKey=None,
+                 receiverIdentityKey=None, serialized=None):
         self.serialized = ""
         if serialized:
             try:
@@ -46,22 +49,21 @@ class WhisperMessage(CiphertextMessage):
             except InvalidKeyException as e:
                 raise InvalidMessageException(e)
         else:
-            version  = ByteUtil.intsToByteHighAndLow(messageVersion, self.__class__.CURRENT_VERSION)
+            version = ByteUtil.intsToByteHighAndLow(messageVersion, self.__class__.CURRENT_VERSION)
             message = whisperprotos.WhisperMessage()
             message.ratchetKey = ECPublicKey_senderRatchetKey.serialize()
             message.counter = counter
             message.previousCounter = previousCounter
             message.ciphertext = ciphertext
             message = message.SerializeToString()
-            mac  = self.getMac(messageVersion, senderIdentityKey, receiverIdentityKey, macKey,
-                               ByteUtil.combine(version, message))
+            mac = self.getMac(messageVersion, senderIdentityKey, receiverIdentityKey, macKey,
+                              ByteUtil.combine(version, message))
             self.serialized = bytes(ByteUtil.combine(version, message, mac))
             self.senderRatchetKey = ECPublicKey_senderRatchetKey
             self.counter = counter
             self.previousCounter = previousCounter
             self.ciphertext = ciphertext
             self.messageVersion = messageVersion
-
 
     def getSenderRatchetKey(self):
         return self.senderRatchetKey
@@ -76,7 +78,9 @@ class WhisperMessage(CiphertextMessage):
         return self.ciphertext
 
     def verifyMac(self, messageVersion, senderIdentityKey, receiverIdentityKey, macKey):
-        parts = ByteUtil.split(self.serialized, len(self.serialized) - self.__class__.MAC_LENGTH, self.__class__.MAC_LENGTH)
+        parts = ByteUtil.split(self.serialized,
+                               len(self.serialized) - self.__class__.MAC_LENGTH,
+                               self.__class__.MAC_LENGTH)
         ourMac = self.getMac(messageVersion, senderIdentityKey, receiverIdentityKey, macKey, parts[0])
         theirMac = parts[1]
 
@@ -100,4 +104,6 @@ class WhisperMessage(CiphertextMessage):
         return CiphertextMessage.WHISPER_TYPE
 
     def isLegacy(self, message):
-        return message is not None and len(message) >= 1 and ByteUtil.highBitsToInt(message[0]) <= CiphertextMessage.UNSUPPORTED_VERSION
+        return message is not None and \
+                len(message) >= 1 and \
+                ByteUtil.highBitsToInt(message[0]) <= CiphertextMessage.UNSUPPORTED_VERSION

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from ..ecc.curve import Curve
 from .bobaxolotlparamaters import BobAxolotlParameters
 from .aliceaxolotlparameters import AliceAxolotlParameters
@@ -5,6 +7,7 @@ from ..kdf.hkdf import HKDF
 from ..util.byteutil import ByteUtil
 from .rootkey import RootKey
 from .chainkey import ChainKey
+
 
 class RatchetingSession:
     @staticmethod
@@ -14,26 +17,24 @@ class RatchetingSession:
         :type sessionVersion: int
         :type parameters: SymmetricAxolotlParameters
         """
-
         if RatchetingSession.isAlice(parameters.getOurBaseKey().getPublicKey(), parameters.getTheirBaseKey()):
             aliceParameters = AliceAxolotlParameters.newBuilder()
-            aliceParameters.setOurBaseKey(parameters.getOurBaseKey())\
-                     .setOurIdentityKey(parameters.getOurIdentityKey())\
-                     .setTheirRatchetKey(parameters.getTheirRatchetKey())\
-                     .setTheirIdentityKey(parameters.getTheirIdentityKey())\
-                     .setTheirSignedPreKey(parameters.getTheirBaseKey())\
-                     .setTheirOneTimePreKey(None)
+            aliceParameters.setOurBaseKey(parameters.getOurBaseKey()) \
+                .setOurIdentityKey(parameters.getOurIdentityKey()) \
+                .setTheirRatchetKey(parameters.getTheirRatchetKey()) \
+                .setTheirIdentityKey(parameters.getTheirIdentityKey()) \
+                .setTheirSignedPreKey(parameters.getTheirBaseKey()) \
+                .setTheirOneTimePreKey(None)
             RatchetingSession.initializeSessionAsAlice(sessionState, sessionVersion, aliceParameters.create())
         else:
             bobParameters = BobAxolotlParameters.newBuilder()
-            bobParameters.setOurIdentityKey(parameters.getOurIdentityKey())\
-                   .setOurRatchetKey(parameters.getOurRatchetKey())\
-                   .setOurSignedPreKey(parameters.getOurBaseKey())\
-                   .setOurOneTimePreKey(None)\
-                   .setTheirBaseKey(parameters.getTheirBaseKey())\
-                   .setTheirIdentityKey(parameters.getTheirIdentityKey())
+            bobParameters.setOurIdentityKey(parameters.getOurIdentityKey()) \
+                .setOurRatchetKey(parameters.getOurRatchetKey()) \
+                .setOurSignedPreKey(parameters.getOurBaseKey()) \
+                .setOurOneTimePreKey(None) \
+                .setTheirBaseKey(parameters.getTheirBaseKey()) \
+                .setTheirIdentityKey(parameters.getTheirIdentityKey())
             RatchetingSession.initializeSessionAsBob(sessionState, sessionVersion, bobParameters.create())
-
 
     @staticmethod
     def initializeSessionAsAlice(sessionState, sessionVersion, parameters):
@@ -42,8 +43,6 @@ class RatchetingSession:
         :type sessionVersion: int
         :type parameters: AliceAxolotlParameters
         """
-
-
         sessionState.setSessionVersion(sessionVersion)
         sessionState.setRemoteIdentityKey(parameters.getTheirIdentityKey())
         sessionState.setLocalIdentityKey(parameters.getOurIdentityKey().getPublicKey())
@@ -55,14 +54,15 @@ class RatchetingSession:
             secrets.extend(RatchetingSession.getDiscontinuityBytes())
 
         secrets.extend(Curve.calculateAgreement(parameters.getTheirSignedPreKey(),
-                                             parameters.getOurIdentityKey().getPrivateKey()))
+                                                parameters.getOurIdentityKey().getPrivateKey()))
         secrets.extend(Curve.calculateAgreement(parameters.getTheirIdentityKey().getPublicKey(),
-                                             parameters.getOurBaseKey().getPrivateKey()))
+                                                parameters.getOurBaseKey().getPrivateKey()))
         secrets.extend(Curve.calculateAgreement(parameters.getTheirSignedPreKey(),
-                                             parameters.getOurBaseKey().getPrivateKey()))
+                                                parameters.getOurBaseKey().getPrivateKey()))
 
         if sessionVersion >= 3 and parameters.getTheirOneTimePreKey() is not None:
-            secrets.extend(Curve.calculateAgreement(parameters.getTheirOneTimePreKey(), parameters.getOurBaseKey().getPrivateKey()))
+            secrets.extend(Curve.calculateAgreement(parameters.getTheirOneTimePreKey(),
+                                                    parameters.getOurBaseKey().getPrivateKey()))
 
         derivedKeys = RatchetingSession.calculateDerivedKeys(sessionVersion, secrets)
         sendingChain = derivedKeys.getRootKey().createChain(parameters.getTheirRatchetKey(), sendingRatchetKey)
@@ -71,7 +71,6 @@ class RatchetingSession:
         sessionState.setSenderChain(sendingRatchetKey, sendingChain[1])
         sessionState.setRootKey(sendingChain[0])
 
-
     @staticmethod
     def initializeSessionAsBob(sessionState, sessionVersion, parameters):
         """
@@ -79,7 +78,6 @@ class RatchetingSession:
         :type sessionVersion: int
         :type parameters: BobAxolotlParameters
         """
-
         sessionState.setSessionVersion(sessionVersion)
         sessionState.setRemoteIdentityKey(parameters.getTheirIdentityKey())
         sessionState.setLocalIdentityKey(parameters.getOurIdentityKey().getPublicKey())
@@ -95,16 +93,15 @@ class RatchetingSession:
         secrets.extend(Curve.calculateAgreement(parameters.getTheirBaseKey(),
                                                 parameters.getOurIdentityKey().getPrivateKey()))
         secrets.extend(Curve.calculateAgreement(parameters.getTheirBaseKey(),
-                                               parameters.getOurSignedPreKey().getPrivateKey()))
+                                                parameters.getOurSignedPreKey().getPrivateKey()))
 
         if sessionVersion >= 3 and parameters.getOurOneTimePreKey() is not None:
             secrets.extend(Curve.calculateAgreement(parameters.getTheirBaseKey(),
-                                                   parameters.getOurOneTimePreKey().getPrivateKey()))
+                                                    parameters.getOurOneTimePreKey().getPrivateKey()))
 
         derivedKeys = RatchetingSession.calculateDerivedKeys(sessionVersion, secrets)
         sessionState.setSenderChain(parameters.getOurRatchetKey(), derivedKeys.getChainKey())
         sessionState.setRootKey(derivedKeys.getRootKey())
-
 
     @staticmethod
     def getDiscontinuityBytes():
@@ -125,7 +122,6 @@ class RatchetingSession:
         :type theirKey: ECPublicKey
         """
         return ourKey < theirKey
-
 
     class DerivedKeys:
         def __init__(self, rootKey, chainKey):

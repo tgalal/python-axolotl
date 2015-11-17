@@ -1,9 +1,12 @@
-from axolotl.state.sessionstore import SessionStore
-from axolotl.state.sessionrecord import SessionRecord
+# -*- coding: utf-8 -*-
+
+from ..state.sessionstore import SessionStore
+from ..state.sessionrecord import SessionRecord
+
+
 class InMemorySessionStore(SessionStore):
     def __init__(self):
         self.sessions = {}
-
 
     def loadSession(self, recepientId, deviceId):
         if self.containsSession(recepientId, deviceId):
@@ -32,6 +35,3 @@ class InMemorySessionStore(SessionStore):
         for k in self.sessions.keys():
             if k[0] == recepientId:
                 del self.sessions[k]
-
-
-

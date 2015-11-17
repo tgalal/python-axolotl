@@ -1,6 +1,11 @@
+# -*- coding: utf-8 -*-
+
 from ..util.byteutil import ByteUtil
+
+
 class DerivedRootSecrets:
     SIZE = 64
+
     def __init__(self, okm):
         keys = ByteUtil.split(okm, 32, 32)
         self.rootKey = keys[0]

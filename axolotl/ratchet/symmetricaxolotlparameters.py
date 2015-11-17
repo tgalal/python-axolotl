@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
+
+
 class SymmetricAxolotlParameters:
-    def __init__(self, ourBaseKey, ourRatchetKey,
-                 ourIdentityKey, theirBaseKey,
+    def __init__(self, ourBaseKey, ourRatchetKey, ourIdentityKey, theirBaseKey,
                  theirRatchetKey, theirIdentityKey):
         """
         :type ourBaseKey: ECKeyPair
@@ -10,7 +12,6 @@ class SymmetricAxolotlParameters:
         :type theirRatchetKey: ECKeyPair
         :type theirIdentityKey: IdentityKey
         """
-
         self.ourBaseKey = ourBaseKey
         self.ourIdentityKey = ourIdentityKey
         self.ourRatchetKey = ourRatchetKey
@@ -18,8 +19,8 @@ class SymmetricAxolotlParameters:
         self.theirIdentityKey = theirIdentityKey
         self.theirBaseKey = theirBaseKey
 
-        if ourBaseKey is None or ourIdentityKey is None or ourRatchetKey is None\
-            or theirRatchetKey is None or theirIdentityKey is None or theirBaseKey is None:
+        if ourBaseKey is None or ourIdentityKey is None or ourRatchetKey is None \
+                or theirRatchetKey is None or theirIdentityKey is None or theirBaseKey is None:
             raise ValueError("Null value!")
 
     def getOurBaseKey(self):
@@ -69,8 +70,6 @@ class SymmetricAxolotlParameters:
             self.theirRatchetKey = theirRatchetKey
             return self
 
-
-
         def setTheirIdentityKey(self, theirIdentityKey):
             self.theirIdentityKey = theirIdentityKey
             return self
@@ -81,4 +80,4 @@ class SymmetricAxolotlParameters:
 
         def create(self):
             return SymmetricAxolotlParameters(self.ourBaseKey, self.ourRatchetKey, self.ourIdentityKey,
-                                        self.theirBaseKey, self.theirRatchetKey, self.theirIdentityKey)
+                                              self.theirBaseKey, self.theirRatchetKey, self.theirIdentityKey)

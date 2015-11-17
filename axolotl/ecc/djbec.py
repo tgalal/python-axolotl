@@ -1,11 +1,13 @@
-import struct
+# -*- coding: utf-8 -*-
+
+import binascii
+
 from .ec import ECPublicKey, ECPrivateKey
 from ..util.byteutil import ByteUtil
-from axolotl.ecc import curve
-import sys
-import binascii
-class DjbECPublicKey(ECPublicKey):
+from . import curve
 
+
+class DjbECPublicKey(ECPublicKey):
     def __init__(self, publicKey):
         self.publicKey = publicKey
 
@@ -39,8 +41,8 @@ class DjbECPublicKey(ECPublicKey):
         else:
             return 1
 
-class DjbECPrivateKey(ECPrivateKey):
 
+class DjbECPrivateKey(ECPrivateKey):
     def __init__(self, privateKey):
         self.privateKey = privateKey
 

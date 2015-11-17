@@ -1,7 +1,9 @@
+# -*- coding: utf-8 -*-
+
+
 class AliceAxolotlParameters:
-    def __init__(self,ourIdentityKey, ourBaseKey,
-                 theirIdentityKey, theirSignedPreKey,
-                  theirRatchetKey, theirOneTimePreKey):
+    def __init__(self, ourIdentityKey, ourBaseKey, theirIdentityKey, theirSignedPreKey,
+                 theirRatchetKey, theirOneTimePreKey):
         """
         :type ourBaseKey: ECKeyPair
         :type theirSignedPreKey: ECKeyPair
@@ -10,7 +12,6 @@ class AliceAxolotlParameters:
         :type theirRatchetKey: ECKeyPair
         :type theirIdentityKey: IdentityKey
         """
-
         self.ourBaseKey = ourBaseKey
         self.ourIdentityKey = ourIdentityKey
         self.theirSignedPreKey = theirSignedPreKey
@@ -18,10 +19,9 @@ class AliceAxolotlParameters:
         self.theirIdentityKey = theirIdentityKey
         self.theirOneTimePreKey = theirOneTimePreKey
 
-        if ourBaseKey is None or ourIdentityKey is None or theirSignedPreKey is None\
-            or theirRatchetKey is None or theirIdentityKey is None or theirSignedPreKey is None:
+        if ourBaseKey is None or ourIdentityKey is None or theirSignedPreKey is None \
+                or theirRatchetKey is None or theirIdentityKey is None or theirSignedPreKey is None:
             raise ValueError("Null value!")
-
 
     def getOurIdentityKey(self):
         return self.ourIdentityKey
@@ -34,7 +34,6 @@ class AliceAxolotlParameters:
 
     def getTheirSignedPreKey(self):
         return self.theirSignedPreKey
-
 
     def getTheirOneTimePreKey(self):
         return self.theirOneTimePreKey
@@ -63,7 +62,6 @@ class AliceAxolotlParameters:
             self.ourBaseKey = ourBaseKey
             return self
 
-
         def setTheirRatchetKey(self, theirRatchetKey):
             self.theirRatchetKey = theirRatchetKey
             return self
@@ -75,7 +73,6 @@ class AliceAxolotlParameters:
         def setTheirSignedPreKey(self, theirSignedPreKey):
             self.theirSignedPreKey = theirSignedPreKey
             return self
-
 
         def setTheirOneTimePreKey(self, theirOneTimePreKey):
             self.theirOneTimePreKey = theirOneTimePreKey

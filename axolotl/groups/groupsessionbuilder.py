@@ -1,4 +1,8 @@
-from axolotl.protocol.senderkeydistributionmessage import SenderKeyDistributionMessage
+# -*- coding: utf-8 -*-
+
+from ..protocol.senderkeydistributionmessage import SenderKeyDistributionMessage
+
+
 class GroupSessionBuilder:
     def __init__(self, senderKeyStore):
         self.senderKeyStore = senderKeyStore
@@ -10,11 +14,10 @@ class GroupSessionBuilder:
         """
         senderKeyRecord = self.senderKeyStore.loadSenderKey(sender)
         senderKeyRecord.addSenderKeyState(senderKeyDistributionMessage.getId(),
-                                        senderKeyDistributionMessage.getIteration(),
-                                        senderKeyDistributionMessage.getChainKey(),
-                                        senderKeyDistributionMessage.getSignatureKey())
+                                          senderKeyDistributionMessage.getIteration(),
+                                          senderKeyDistributionMessage.getChainKey(),
+                                          senderKeyDistributionMessage.getSignatureKey())
         self.senderKeyStore.storeSenderKey(sender, senderKeyRecord)
-
 
     def process(self, groupId, keyId, iteration, chainKey, signatureKey):
         """

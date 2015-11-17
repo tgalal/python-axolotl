@@ -1,3 +1,6 @@
+# -*- cosing: utf-8 -*-
+
+
 class PreKeyBundle:
     def __init__(self, registrationId, deviceId, preKeyId, ECPublicKey_preKeyPublic,
                  signedPreKeyId, ECPublicKey_signedPreKeyPublic, signedPreKeySignature,
