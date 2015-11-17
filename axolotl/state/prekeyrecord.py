@@ -1,8 +1,12 @@
+# -*- coding: utf-8 -*-
+
 from .storageprotos import PreKeyRecordStructure
 from ..ecc.curve import Curve
 from ..ecc.eckeypair import ECKeyPair
+
+
 class PreKeyRecord:
-    def __init__(self, _id = None, ecKeyPair = None, serialized = None):
+    def __init__(self, _id=None, ecKeyPair=None, serialized=None):
         self.structure = PreKeyRecordStructure()
         if serialized:
             self.structure.ParseFromString(serialized)

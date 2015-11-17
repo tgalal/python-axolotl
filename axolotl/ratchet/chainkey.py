@@ -1,10 +1,15 @@
+# -*- coding: utf-8 -*-
+
 import hmac
 import hashlib
+
 from ..kdf.derivedmessagesecrets import DerivedMessageSecrets
 from ..kdf.messagekeys import MessageKeys
+
+
 class ChainKey:
-    MESSAGE_KEY_SEED    = bytearray([0x01])
-    CHAIN_KEY_SEED      = bytearray([0x02])
+    MESSAGE_KEY_SEED = bytearray([0x01])
+    CHAIN_KEY_SEED = bytearray([0x02])
 
     def __init__(self, kdf, key, index):
         self.kdf = kdf
@@ -23,7 +28,9 @@ class ChainKey:
 
     def getMessageKeys(self):
         inputKeyMaterial = self.getBaseMaterial(self.__class__.MESSAGE_KEY_SEED)
-        keyMaterialBytes = self.kdf.deriveSecrets(inputKeyMaterial, bytearray("WhisperMessageKeys".encode()), DerivedMessageSecrets.SIZE)
+        keyMaterialBytes = self.kdf.deriveSecrets(inputKeyMaterial,
+                                                  bytearray("WhisperMessageKeys".encode()),
+                                                  DerivedMessageSecrets.SIZE)
         keyMaterial = DerivedMessageSecrets(keyMaterialBytes)
         return MessageKeys(keyMaterial.getCipherKey(), keyMaterial.getMacKey(), keyMaterial.getIv(), self.index)
 
@@ -31,4 +38,3 @@ class ChainKey:
         mac = hmac.new(bytes(self.key), digestmod=hashlib.sha256)
         mac.update(bytes(seedBytes))
         return mac.digest()
-

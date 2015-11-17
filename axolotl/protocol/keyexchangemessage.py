@@ -1,22 +1,23 @@
+# -*- coding: utf-8 -*-
+
 from .ciphertextmessage import CiphertextMessage
-from axolotl.util.byteutil import ByteUtil
-from axolotl.protocol import whisperprotos
-from axolotl.legacymessageexception import LegacyMessageException
-from axolotl.invalidversionexception import InvalidVersionException
-from axolotl.invalidmessageexception import InvalidMessageException
-from axolotl.invalidkeyexception import InvalidKeyException
-from axolotl.ecc.curve import Curve
-from axolotl.identitykey import IdentityKey
+from ..util.byteutil import ByteUtil
+from . import whisperprotos
+from ..legacymessageexception import LegacyMessageException
+from ..invalidversionexception import InvalidVersionException
+from ..invalidmessageexception import InvalidMessageException
+from ..invalidkeyexception import InvalidKeyException
+from ..ecc.curve import Curve
+from ..identitykey import IdentityKey
+
+
 class KeyExchangeMessage:
     INITIATE_FLAG = 0x01
     RESPONSE_FLAG = 0X02
     SIMULTAENOUS_INITIATE_FLAG = 0x04
 
-    def __init__(self, messageVersion = None, sequence = None, flags=None,
-                 baseKey = None, baseKeySignature = None,
-                 ratchetKey = None,
-                 identityKey = None,
-                 serialized = None):
+    def __init__(self, messageVersion=None, sequence=None, flags=None, baseKey=None,
+                 baseKeySignature=None, ratchetKey=None, identityKey=None, serialized=None):
         """
         :type messageVersion: int
         :type  sequence: int
@@ -29,8 +30,8 @@ class KeyExchangeMessage:
         """
         if serialized:
             try:
-                parts                 = ByteUtil.split(serialized, 1, len(serialized)- 1)
-                self.version          = ByteUtil.highBitsToInt(parts[0][0])
+                parts = ByteUtil.split(serialized, 1, len(serialized) - 1)
+                self.version = ByteUtil.highBitsToInt(parts[0][0])
                 self.supportedVersion = ByteUtil.lowBitsToInt(parts[0][0])
                 if self.version <= CiphertextMessage.UNSUPPORTED_VERSION:
                     raise LegacyMessageException("Unsupportmessageed legacy version: %s" % self.version)
@@ -39,9 +40,9 @@ class KeyExchangeMessage:
                 message = whisperprotos.KeyExchangeMessage()
                 message.ParseFromString(bytes(parts[1]))
 
-                if not message.HasField("id") or not message.HasField("baseKey")\
-                    or not message.HasField("ratchetKey") or not message.HasField("identityKey")\
-                    or (self.version >= 3 and not message.HasField("baseKeySignature")):
+                if (not message.HasField("id") or not message.HasField("baseKey") or
+                        not message.HasField("ratchetKey") or not message.HasField("identityKey") or
+                        (self.version >= 3 and not message.HasField("baseKeySignature"))):
                     raise InvalidMessageException("Some required fields are missing!")
 
                 self.sequence = message.id >> 5
@@ -55,15 +56,14 @@ class KeyExchangeMessage:
             except InvalidKeyException as e:
                 raise InvalidMessageException(e)
         else:
-
             self.supportedVersion = CiphertextMessage.CURRENT_VERSION
-            self.version          = messageVersion
-            self.sequence         = sequence
-            self.flags            = flags
-            self.baseKey          = baseKey
+            self.version = messageVersion
+            self.sequence = sequence
+            self.flags = flags
+            self.baseKey = baseKey
             self.baseKeySignature = baseKeySignature
-            self.ratchetKey       = ratchetKey
-            self.identityKey      = identityKey
+            self.ratchetKey = ratchetKey
+            self.identityKey = identityKey
 
             version = [ByteUtil.intsToByteHighAndLow(self.version, self.supportedVersion)]
             keyExchangeMessage = whisperprotos.KeyExchangeMessage()
@@ -76,7 +76,6 @@ class KeyExchangeMessage:
                 keyExchangeMessage.baseKeySignature = baseKeySignature
 
             self.serialized = ByteUtil.combine(version, keyExchangeMessage.SerializeToString())
-
 
     def getVersion(self):
         return self.version

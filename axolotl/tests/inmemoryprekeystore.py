@@ -1,6 +1,10 @@
-from axolotl.state.prekeystore import PreKeyStore
-from axolotl.state.prekeyrecord import PreKeyRecord
-from axolotl.invalidkeyidexception import InvalidKeyIdException
+# -*- coding: utf-8 -*-
+
+from ..state.prekeystore import PreKeyStore
+from ..state.prekeyrecord import PreKeyRecord
+from ..invalidkeyidexception import InvalidKeyIdException
+
+
 class InMemoryPreKeyStore(PreKeyStore):
     def __init__(self):
         self.store = {}
@@ -9,7 +13,7 @@ class InMemoryPreKeyStore(PreKeyStore):
         if preKeyId not in self.store:
             raise InvalidKeyIdException("No such prekeyRecord!")
 
-        return PreKeyRecord(serialized = self.store[preKeyId])
+        return PreKeyRecord(serialized=self.store[preKeyId])
 
     def storePreKey(self, preKeyId, preKeyRecord):
         self.store[preKeyId] = preKeyRecord.serialize()

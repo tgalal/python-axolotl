@@ -1,8 +1,12 @@
+# -*- coding; utf-8 -*-
+
 from .storageprotos import SignedPreKeyRecordStructure
 from ..ecc.curve import Curve
 from ..ecc.eckeypair import ECKeyPair
+
+
 class SignedPreKeyRecord:
-    def __init__(self, _id = None, timestamp = None, ecKeyPair = None, signature = None, serialized = None):
+    def __init__(self, _id=None, timestamp=None, ecKeyPair=None, signature=None, serialized=None):
         self.structure = SignedPreKeyRecordStructure()
         if serialized:
             self.structure.ParseFromString(serialized)
@@ -12,7 +16,6 @@ class SignedPreKeyRecord:
             self.structure.privateKey = ecKeyPair.getPrivateKey().serialize()
             self.structure.signature = signature
             self.structure.timestamp = timestamp
-
 
     def getId(self):
         return self.structure.id
