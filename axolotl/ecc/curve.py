@@ -4,7 +4,7 @@ import os
 
 from .eckeypair import ECKeyPair
 from ..invalidkeyexception import InvalidKeyException
-from . import djbec
+from .djbec import DjbECPublicKey, DjbECPrivateKey
 
 import axolotl_curve25519 as _curve
 
@@ -26,7 +26,7 @@ class Curve:
     def generateKeyPair():
         privateKey = Curve.generatePrivateKey()
         publicKey = Curve.generatePublicKey(privateKey)
-        return ECKeyPair(djbec.DjbECPublicKey(publicKey), djbec.DjbECPrivateKey(privateKey))
+        return ECKeyPair(DjbECPublicKey(publicKey), DjbECPrivateKey(privateKey))
 
     @staticmethod
     def decodePoint(_bytes, offset=0):
@@ -37,13 +37,13 @@ class Curve:
             if type != Curve.DJB_TYPE:
                 raise InvalidKeyException("Unknown key type: %s " % type)
             keyBytes = _bytes[offset+1:][:32]
-            return djbec.DjbECPublicKey(bytes(keyBytes))
+            return DjbECPublicKey(bytes(keyBytes))
         else:
             raise InvalidKeyException("Unknown key type: %s" % type)
 
     @staticmethod
     def decodePrivatePoint(_bytes):
-        return djbec.DjbECPrivateKey(bytes(_bytes))
+        return DjbECPrivateKey(bytes(_bytes))
 
     @staticmethod
     def calculateAgreement(publicKey, privateKey):
