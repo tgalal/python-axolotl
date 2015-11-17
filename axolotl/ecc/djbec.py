@@ -4,18 +4,22 @@ import binascii
 
 from .ec import ECPublicKey, ECPrivateKey
 from ..util.byteutil import ByteUtil
-from .curve import Curve
 
 
 class DjbECPublicKey(ECPublicKey):
+
     def __init__(self, publicKey):
         self.publicKey = publicKey
 
     def serialize(self):
+        from .curve import Curve
+
         combined = ByteUtil.combine([Curve.DJB_TYPE], self.publicKey)
         return bytes(combined)
 
     def getType(self):
+        from .curve import Curve
+
         return Curve.DJB_TYPE
 
     def getPublicKey(self):
@@ -47,6 +51,8 @@ class DjbECPrivateKey(ECPrivateKey):
         self.privateKey = privateKey
 
     def getType(self):
+        from .curve import Curve
+
         return Curve.DJB_TYPE
 
     def getPrivateKey(self):
