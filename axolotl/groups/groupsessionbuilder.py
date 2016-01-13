@@ -1,31 +1,42 @@
 from axolotl.protocol.senderkeydistributionmessage import SenderKeyDistributionMessage
+from axolotl.invalidkeyidexception import InvalidKeyIdException
+from axolotl.invalidkeyexception import InvalidKeyException
+from axolotl.util.keyhelper import KeyHelper
 class GroupSessionBuilder:
     def __init__(self, senderKeyStore):
         self.senderKeyStore = senderKeyStore
 
-    def processSender(self, sender, senderKeyDistributionMessage):
+    def process(self, senderKeyName, senderKeyDistributionMessage):
         """
-        :type sender: str
+        :type senderKeyName: SenderKeyName
         :type senderKeyDistributionMessage: SenderKeyDistributionMessage
         """
-        senderKeyRecord = self.senderKeyStore.loadSenderKey(sender)
+        senderKeyRecord = self.senderKeyStore.loadSenderKey(senderKeyName)
         senderKeyRecord.addSenderKeyState(senderKeyDistributionMessage.getId(),
                                         senderKeyDistributionMessage.getIteration(),
                                         senderKeyDistributionMessage.getChainKey(),
                                         senderKeyDistributionMessage.getSignatureKey())
-        self.senderKeyStore.storeSenderKey(sender, senderKeyRecord)
+        self.senderKeyStore.storeSenderKey(senderKeyName, senderKeyRecord)
 
-
-    def process(self, groupId, keyId, iteration, chainKey, signatureKey):
+    def create(self, senderKeyName):
         """
-        :type groupId: str
-        :type keyId: int
-        :type iteration: int
-        :type chainKey: bytearray
-        :type signatureKey: ECKeyPair
+        :type senderKeyName: SenderKeyName
         """
-        senderKeyRecord = self.senderKeyStore.loadSenderKey(groupId)
-        senderKeyRecord.setSenderKeyState(keyId, iteration, chainKey, signatureKey)
-        self.senderKeyStore.storeSenderKey(groupId, senderKeyRecord)
+        try:
+            senderKeyRecord = self.senderKeyStore.loadSenderKey(senderKeyName);
 
-        return SenderKeyDistributionMessage(keyId, iteration, chainKey, signatureKey.getPublicKey())
+            if senderKeyRecord.isEmpty() :
+                senderKeyRecord.setSenderKeyState(KeyHelper.generateSenderKeyId(),
+                                                0,
+                                                KeyHelper.generateSenderKey(),
+                                                KeyHelper.generateSenderSigningKey());
+                self.senderKeyStore.storeSenderKey(senderKeyName, senderKeyRecord);
+
+            state = senderKeyRecord.getSenderKeyState();
+
+            return SenderKeyDistributionMessage(state.getKeyId(),
+                                                state.getSenderChainKey().getIteration(),
+                                                state.getSenderChainKey().getSeed(),
+                                                state.getSigningKeyPublic());
+        except (InvalidKeyException, InvalidKeyIdException) as e:
+            raise AssertionError(e)

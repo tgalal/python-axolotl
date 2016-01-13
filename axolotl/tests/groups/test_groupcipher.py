@@ -5,27 +5,49 @@ from axolotl.util.keyhelper import KeyHelper
 from axolotl.groups.groupcipher import GroupCipher
 from axolotl.duplicatemessagexception import DuplicateMessageException
 from axolotl.nosessionexception import NoSessionException
+from axolotl.groups.senderkeyname import SenderKeyName
+from axolotl.axolotladdress import AxolotlAddress
+from axolotl.protocol.senderkeydistributionmessage import SenderKeyDistributionMessage
+
+SENDER_ADDRESS = AxolotlAddress("+14150001111", 1)
+GROUP_SENDER   = SenderKeyName("nihilist history reading group", SENDER_ADDRESS);
 
 class GroupCipherTest(unittest.TestCase):
-    def test_basicEncryptDecrypt(self):
-        aliceStore = InMemorySenderKeyStore()
-        bobStore   =  InMemorySenderKeyStore()
+
+    def test_noSession(self):
+        aliceStore = InMemorySenderKeyStore();
+        bobStore   = InMemorySenderKeyStore();
 
         aliceSessionBuilder = GroupSessionBuilder(aliceStore)
         bobSessionBuilder   = GroupSessionBuilder(bobStore)
 
+        aliceGroupCipher = GroupCipher(aliceStore, GROUP_SENDER)
+        bobGroupCipher   = GroupCipher(bobStore, GROUP_SENDER);
 
-        aliceGroupCipher =  GroupCipher(aliceStore, "groupWithBobInIt")
-        bobGroupCipher   = GroupCipher(bobStore, "groupWithBobInIt::aliceUserName")
+        sentAliceDistributionMessage     = aliceSessionBuilder.create(GROUP_SENDER);
+        receivedAliceDistributionMessage = SenderKeyDistributionMessage(serialized = sentAliceDistributionMessage.serialize());
 
-        aliceSenderKey        = KeyHelper.generateSenderKey()
-        aliceSenderSigningKey = KeyHelper.generateSenderSigningKey()
-        aliceSenderKeyId      = KeyHelper.generateSenderKeyId()
+        ciphertextFromAlice = aliceGroupCipher.encrypt("smert ze smert");
 
-        aliceDistributionMessage = aliceSessionBuilder.process("groupWithBobInIt", aliceSenderKeyId, 0,
-                                aliceSenderKey, aliceSenderSigningKey)
+        try:
+            plaintextFromAlice  = bobGroupCipher.decrypt(ciphertextFromAlice);
+            raise AssertionError("Should be no session!");
+        except NoSessionException as e:
+            pass
+    def test_basicEncryptDecrypt(self):
+        aliceStore = InMemorySenderKeyStore();
+        bobStore   = InMemorySenderKeyStore();
 
-        bobSessionBuilder.processSender("groupWithBobInIt::aliceUserName", aliceDistributionMessage)
+        aliceSessionBuilder = GroupSessionBuilder(aliceStore)
+        bobSessionBuilder   = GroupSessionBuilder(bobStore)
+
+        aliceGroupCipher = GroupCipher(aliceStore, GROUP_SENDER)
+        bobGroupCipher   = GroupCipher(bobStore, GROUP_SENDER);
+
+        sentAliceDistributionMessage     = aliceSessionBuilder.create(GROUP_SENDER);
+        receivedAliceDistributionMessage = SenderKeyDistributionMessage(serialized = sentAliceDistributionMessage.serialize());
+
+        bobSessionBuilder.process(GROUP_SENDER, receivedAliceDistributionMessage)
 
         ciphertextFromAlice = aliceGroupCipher.encrypt("smert ze smert")
         plaintextFromAlice  = bobGroupCipher.decrypt(ciphertextFromAlice)
@@ -33,23 +55,20 @@ class GroupCipherTest(unittest.TestCase):
         self.assertEqual(plaintextFromAlice, "smert ze smert")
 
     def test_basicRatchet(self):
-        aliceStore = InMemorySenderKeyStore()
-        bobStore   = InMemorySenderKeyStore()
+        aliceStore = InMemorySenderKeyStore();
+        bobStore   = InMemorySenderKeyStore();
 
         aliceSessionBuilder = GroupSessionBuilder(aliceStore)
         bobSessionBuilder   = GroupSessionBuilder(bobStore)
 
-        aliceGroupCipher = GroupCipher(aliceStore, "groupWithBobInIt")
-        bobGroupCipher   = GroupCipher(bobStore, "groupWithBobInIt::aliceUserName")
 
-        aliceSenderKey        = KeyHelper.generateSenderKey()
-        aliceSenderSigningKey = KeyHelper.generateSenderSigningKey()
-        aliceSenderKeyId      = KeyHelper.generateSenderKeyId()
+        aliceGroupCipher = GroupCipher(aliceStore, GROUP_SENDER)
+        bobGroupCipher   = GroupCipher(bobStore, GROUP_SENDER);
 
-        aliceDistributionMessage = aliceSessionBuilder.process("groupWithBobInIt", aliceSenderKeyId, 0,
-                                    aliceSenderKey, aliceSenderSigningKey)
+        sentAliceDistributionMessage     = aliceSessionBuilder.create(GROUP_SENDER);
+        receivedAliceDistributionMessage = SenderKeyDistributionMessage(serialized = sentAliceDistributionMessage.serialize());
 
-        bobSessionBuilder.processSender("groupWithBobInIt::aliceUserName", aliceDistributionMessage)
+        bobSessionBuilder.process(GROUP_SENDER, receivedAliceDistributionMessage)
 
         ciphertextFromAlice  = aliceGroupCipher.encrypt("smert ze smert")
         ciphertextFromAlice2 = aliceGroupCipher.encrypt("smert ze smert2")
@@ -73,24 +92,20 @@ class GroupCipherTest(unittest.TestCase):
 
 
     def test_outOfOrder(self):
-
-        aliceStore = InMemorySenderKeyStore()
-        bobStore   = InMemorySenderKeyStore()
+        aliceStore = InMemorySenderKeyStore();
+        bobStore   = InMemorySenderKeyStore();
 
         aliceSessionBuilder = GroupSessionBuilder(aliceStore)
         bobSessionBuilder   = GroupSessionBuilder(bobStore)
 
-        aliceGroupCipher = GroupCipher(aliceStore, "groupWithBobInIt")
-        bobGroupCipher   = GroupCipher(bobStore, "groupWithBobInIt::aliceUserName")
 
-        aliceSenderKey        = KeyHelper.generateSenderKey()
-        aliceSenderSigningKey = KeyHelper.generateSenderSigningKey()
-        aliceSenderKeyId      = KeyHelper.generateSenderKeyId()
+        aliceGroupCipher = GroupCipher(aliceStore, GROUP_SENDER)
+        bobGroupCipher   = GroupCipher(bobStore, GROUP_SENDER);
 
-        aliceDistributionMessage = aliceSessionBuilder.process("groupWithBobInIt", aliceSenderKeyId, 0,
-                                    aliceSenderKey, aliceSenderSigningKey)
+        sentAliceDistributionMessage     = aliceSessionBuilder.create(GROUP_SENDER);
+        receivedAliceDistributionMessage = SenderKeyDistributionMessage(serialized = sentAliceDistributionMessage.serialize());
 
-        bobSessionBuilder.processSender("groupWithBobInIt::aliceUserName", aliceDistributionMessage)
+        bobSessionBuilder.process(GROUP_SENDER, receivedAliceDistributionMessage)
 
         ciphertexts = []
         for i in range(0, 100):
@@ -100,14 +115,3 @@ class GroupCipherTest(unittest.TestCase):
             ciphertext = ciphertexts.pop(index)
             plaintext = bobGroupCipher.decrypt(ciphertext)
             self.assertEqual(plaintext, "up the punks")
-
-    def test_encryptNoSession(self):
-
-        aliceStore = InMemorySenderKeyStore()
-        aliceGroupCipher = GroupCipher(aliceStore, "groupWithBobInIt")
-        try:
-            aliceGroupCipher.encrypt("up the punks")
-            raise AssertionError("Should have failed!")
-        except NoSessionException as nse:
-            # good
-            pass

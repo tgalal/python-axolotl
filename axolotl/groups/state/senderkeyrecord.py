@@ -14,6 +14,9 @@ class SenderKeyRecord:
                 self.senderKeyStates.append(SenderKeyState(senderKeyStateStructure=structure))
 
 
+    def isEmpty(self):
+        return len(self.senderKeyStates) == 0
+
     def getSenderKeyState(self, keyId = None):
         if keyId is None:
             if len(self.senderKeyStates):

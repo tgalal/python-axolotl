@@ -55,7 +55,7 @@ class SenderKeyMessage(CiphertextMessage):
 
             signature = self.getSignature(signatureKey, bytes(ByteUtil.combine(version, message)))
 
-            self.serialized       = ByteUtil.combine(version, message, signature)
+            self.serialized       = bytes(ByteUtil.combine(version, message, signature))
             self.messageVersion   = self.__class__.CURRENT_VERSION
             self.keyId            = keyId
             self.iteration        = iteration

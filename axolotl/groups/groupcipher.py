@@ -8,13 +8,13 @@ from axolotl.groups.state.senderkeystore import SenderKeyStore
 from axolotl.protocol.senderkeymessage import SenderKeyMessage
 from axolotl.sessioncipher import AESCipher
 class GroupCipher:
-    def __init__(self, senderKeyStore, senderKeyId):
+    def __init__(self, senderKeyStore, senderKeyName):
         """
         :type senderKeyStore: SenderKeyStore
-        :type senderKeyId: str
+        :type senderKeyName: SenderKeyName
         """
         self.senderKeyStore = senderKeyStore
-        self.senderKeyId = senderKeyId
+        self.senderKeyName = senderKeyName
 
     def encrypt(self, paddedPlaintext):
         """
@@ -23,7 +23,7 @@ class GroupCipher:
         paddedPlaintext = bytearray(paddedPlaintext.encode() if sys.version_info > (3,0) else paddedPlaintext)
 
         try:
-            record         = self.senderKeyStore.loadSenderKey(self.senderKeyId)
+            record         = self.senderKeyStore.loadSenderKey(self.senderKeyName)
             senderKeyState = record.getSenderKeyState()
             senderKey      = senderKeyState.getSenderChainKey().getSenderMessageKey()
             ciphertext     = self.getCipherText(senderKey.getIv(), senderKey.getCipherKey(), paddedPlaintext)
@@ -34,7 +34,7 @@ class GroupCipher:
                                                                  senderKeyState.getSigningKeyPrivate())
 
             senderKeyState.setSenderChainKey(senderKeyState.getSenderChainKey().getNext())
-            self.senderKeyStore.storeSenderKey(self.senderKeyId, record)
+            self.senderKeyStore.storeSenderKey(self.senderKeyName, record)
 
             return senderKeyMessage.serialize()
         except InvalidKeyIdException as e:
@@ -45,7 +45,9 @@ class GroupCipher:
         :type senderKeyMessageBytes: bytearray
         """
         try:
-            record           = self.senderKeyStore.loadSenderKey(self.senderKeyId)
+            record           = self.senderKeyStore.loadSenderKey(self.senderKeyName)
+            if record.isEmpty():
+                raise NoSessionException("No sender key for: %s" % self.senderKeyName);
             senderKeyMessage = SenderKeyMessage(serialized = bytes(senderKeyMessageBytes))
             senderKeyState   = record.getSenderKeyState(senderKeyMessage.getKeyId())
 
@@ -55,7 +57,7 @@ class GroupCipher:
 
             plaintext = self.getPlainText(senderKey.getIv(), senderKey.getCipherKey(), senderKeyMessage.getCipherText())
 
-            self.senderKeyStore.storeSenderKey(self.senderKeyId, record)
+            self.senderKeyStore.storeSenderKey(self.senderKeyName, record)
 
             return plaintext
         except (InvalidKeyException, InvalidKeyIdException) as e:
