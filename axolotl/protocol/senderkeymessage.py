@@ -61,6 +61,7 @@ class SenderKeyMessage(CiphertextMessage):
             self.iteration        = iteration
             self.ciphertext       = ciphertext
 
+
     def getKeyId(self):
         return self.keyId
 
@@ -84,7 +85,7 @@ class SenderKeyMessage(CiphertextMessage):
 
     def getSignature(self, signatureKey, serialized):
         """
-        :type signatureKey: ECPirvateKey
+        :type signatureKey: ECPrivateKey
         :type serialized: bytearray
         """
         try:
