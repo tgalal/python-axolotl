@@ -21,7 +21,7 @@ class SenderMessageKey:
         return self.iv
 
     def getCipherKey(self):
-        return self.iv
+        return self.cipherKey
 
     def getSeed(self):
         return self.seed
