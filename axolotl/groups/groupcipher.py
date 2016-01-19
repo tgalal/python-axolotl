@@ -47,7 +47,7 @@ class GroupCipher:
         try:
             record           = self.senderKeyStore.loadSenderKey(self.senderKeyName)
             if record.isEmpty():
-                raise NoSessionException("No sender key for: %s" % self.senderKeyName);
+                raise NoSessionException("No sender key for: %s" % self.senderKeyName)
             senderKeyMessage = SenderKeyMessage(serialized = bytes(senderKeyMessageBytes))
             senderKeyState   = record.getSenderKeyState(senderKeyMessage.getKeyId())
 

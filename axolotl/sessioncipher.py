@@ -243,8 +243,10 @@ class SessionCipher:
 BS = 16
 if sys.version_info >= (3,0):
     pad = lambda s: s + ((BS - len(s) % BS) * chr(BS - len(s) % BS)).encode()
+    unpad = lambda s : s[0:-s[-1]]
 else:
     pad = lambda s: s + (BS - len(s) % BS) * chr(BS - len(s) % BS)
+    unpad = lambda s : s[0:-ord(s[-1])]
 
 
 class AESCipher:
@@ -255,14 +257,14 @@ class AESCipher:
 
     def unpad(self, data):
         unpadLength = data[-1]
-        unpadLength = ord(unpadLength) if type(unpadLength) is not int else unpadLength
-        valid = True
-        if sys.version_info >= (3,0):
-            valid = data[-unpadLength:] == [unpadLength] * unpadLength
+        if type(unpadLength) is int:
+            cmp = bytes([data[-unpadLength]] * unpadLength)
         else:
-            valid = map(ord, data[-unpadLength:]) == [unpadLength] * unpadLength
+            unpadLength = ord(unpadLength)
+            cmp = data[-unpadLength] * unpadLength
+        if data[-unpadLength:] != cmp:
+            raise ValueError("Data not properly padded \n %s" %  data)
 
-        assert valid, "Data not validly padded %s \n %s" % ([ord(i) for i in data], data)
         return data[0:-unpadLength]
 
     def encrypt( self, raw ):
