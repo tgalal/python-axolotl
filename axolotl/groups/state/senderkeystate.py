@@ -32,6 +32,7 @@ class SenderKeyState:
             senderChainKeyStructure = self.senderKeyStateStructure.SenderChainKey()
             senderChainKeyStructure.iteration = iteration
             senderChainKeyStructure.seed = chainKey
+            self.senderKeyStateStructure.senderChainKey.MergeFrom(senderChainKeyStructure)
 
             signingKeyStructure = self.senderKeyStateStructure.SenderSigningKey()
             signingKeyStructure.public = signatureKeyPublic.serialize()
