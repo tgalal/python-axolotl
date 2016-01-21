@@ -35,7 +35,7 @@ class SessionBuilder:
         unsignedPreKeyId = None
 
         if not self.identityKeyStore.isTrustedIdentity(self.recipientId, theirIdentityKey):
-            raise UntrustedIdentityException("Untrusted identity!!")
+            raise UntrustedIdentityException(self.recipientId, theirIdentityKey)
 
         if messageVersion == 2:
             unsignedPreKeyId = self.processV2(sessionRecord, message)
@@ -133,7 +133,7 @@ class SessionBuilder:
         :type preKey: PreKeyBundle
         """
         if not self.identityKeyStore.isTrustedIdentity(self.recipientId, preKey.getIdentityKey()):
-            raise UntrustedIdentityException()
+            raise UntrustedIdentityException(self.recipientId, preKey.getIdentityKey())
 
         if preKey.getSignedPreKey() is not None and\
             not Curve.verifySignature(preKey.getIdentityKey().getPublicKey(),
@@ -176,7 +176,7 @@ class SessionBuilder:
     def processKeyExchangeMessage(self, keyExchangeMessage):
 
         if not self.identityKeyStore.isTrustedIdentity(self.recipientId, keyExchangeMessage.getIdentityKey()):
-            raise UntrustedIdentityException()
+            raise UntrustedIdentityException(self.recipientId, keyExchangeMessage.getIdentityKey())
 
         responseMessage = None
 
