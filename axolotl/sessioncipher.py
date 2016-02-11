@@ -62,9 +62,11 @@ class SessionCipher:
 
         return ciphertextMessage
 
-    def decryptMsg(self, ciphertext):
+    def decryptMsg(self, ciphertext, textMsg=True):
         """
         :type ciphertext: WhisperMessage
+        :type textMsg: Bool set this to False if you are decrypting bytes
+                       instead of string
         """
 
         if not self.sessionStore.containsSession(self.recipientId, self.deviceId):
@@ -75,11 +77,11 @@ class SessionCipher:
 
         self.sessionStore.storeSession(self.recipientId, self.deviceId, sessionRecord)
 
-        if sys.version_info >= (3,0):
+        if sys.version_info >= (3,0) and textMsg:
             return plaintext.decode()
         return plaintext
 
-    def decryptPkmsg(self, ciphertext):
+    def decryptPkmsg(self, ciphertext, textMsg=True):
         """
         :type ciphertext: PreKeyWhisperMessage
         """
@@ -93,7 +95,7 @@ class SessionCipher:
         if unsignedPreKeyId is not None:
             self.preKeyStore.removePreKey(unsignedPreKeyId)
 
-        if sys.version_info >= (3, 0):
+        if sys.version_info >= (3, 0) and textMsg:
             return plaintext.decode()
         return plaintext
 
