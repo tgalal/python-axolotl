@@ -1,8 +1,13 @@
+# -*- coding: utf-8 -*-
+
 from . import storageprotos
 from .sessionstate import SessionState
+
+
 class SessionRecord:
     ARCHIVED_STATES_MAX_LENGTH = 40
-    def __init__(self, sessionState = None, serialized = None):
+
+    def __init__(self, sessionState=None, serialized=None):
         """
         :type sessionState: SessionState
         :type serialized: str
@@ -33,7 +38,6 @@ class SessionRecord:
 
         return False
 
-
     def getSessionState(self):
         return self.sessionState
 
@@ -52,7 +56,6 @@ class SessionRecord:
         if len(self.previousStates) > self.__class__.ARCHIVED_STATES_MAX_LENGTH:
             self.previousStates.pop()
 
-
     def setState(self, sessionState):
         self.sessionState = sessionState
 
@@ -63,4 +66,3 @@ class SessionRecord:
         record.previousSessions.extend(previousStructures)
 
         return record.SerializeToString()
-

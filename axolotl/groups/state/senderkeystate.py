@@ -1,11 +1,15 @@
-from axolotl.state import storageprotos
-from axolotl.groups.ratchet.senderchainkey import SenderChainKey
-from axolotl.groups.ratchet.sendermessagekey import SenderMessageKey
-from axolotl.ecc.curve import Curve
+# -*- coding: utf-8 -*-
+
+from ...state import storageprotos
+from ..ratchet.senderchainkey import SenderChainKey
+from ..ratchet.sendermessagekey import SenderMessageKey
+from ...ecc.curve import Curve
+
+
 class SenderKeyState:
-    def __init__(self, id = None, iteration = None, chainKey = None,
-                 signatureKeyPublic = None, signatureKeyPrivate = None
-                 , signatureKeyPair = None, senderKeyStateStructure = None):
+    def __init__(self, id=None, iteration=None, chainKey=None,
+                 signatureKeyPublic=None, signatureKeyPrivate=None,
+                 signatureKeyPair=None, senderKeyStateStructure=None):
         """
         :type id: int
         :type iteration: int
@@ -15,7 +19,6 @@ class SenderKeyState:
         :type signatureKeyPair: ECKeyPair
         :type senderKeyStateStructure: SenderKeyStateStructure
         """
-
         assert (bool(id) and bool(iteration) and bool(chainKey)) or \
                (bool(senderKeyStateStructure) ^ bool(signatureKeyPublic or signatureKeyPair)) or \
                (bool(signatureKeyPublic) ^ bool(signatureKeyPair)), "Missing required arguments"
@@ -26,7 +29,6 @@ class SenderKeyState:
             if signatureKeyPair:
                 signatureKeyPublic = signatureKeyPair.getPublicKey()
                 signatureKeyPrivate = signatureKeyPair.getPrivateKey()
-
 
             self.senderKeyStateStructure = storageprotos.SenderKeyStateStructure()
             senderChainKeyStructure = self.senderKeyStateStructure.SenderChainKey()
@@ -44,14 +46,12 @@ class SenderKeyState:
             self.senderChainKey = senderChainKeyStructure
             self.senderKeyStateStructure.senderSigningKey.CopyFrom(signingKeyStructure)
 
-
     def getKeyId(self):
         return self.senderKeyStateStructure.senderKeyId
 
     def getSenderChainKey(self):
         return SenderChainKey(self.senderKeyStateStructure.senderChainKey.iteration,
                               bytearray(self.senderKeyStateStructure.senderChainKey.seed))
-
 
     def setSenderChainKey(self, chainKey):
         self.senderKeyStateStructure.senderChainKey.iteration = chainKey.getIteration()
@@ -63,14 +63,12 @@ class SenderKeyState:
     def getSigningKeyPrivate(self):
         return Curve.decodePrivatePoint(self.senderKeyStateStructure.senderSigningKey.private)
 
-
     def hasSenderMessageKey(self, iteration):
         for senderMessageKey in self.senderKeyStateStructure.senderMessageKeys:
             if senderMessageKey.iteration == iteration:
                 return True
 
         return False
-
 
     def addSenderMessageKey(self, senderMessageKey):
         smk = self.senderKeyStateStructure.SenderMessageKey()

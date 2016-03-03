@@ -1,5 +1,7 @@
-class ECKeyPair():
+# -*- coding: utf-8 -*-
 
+
+class ECKeyPair():
     def __init__(self, publicKey, privateKey):
         """
         :type publicKey: ECPublicKey
@@ -13,4 +15,3 @@ class ECKeyPair():
 
     def getPublicKey(self):
         return self.publicKey
-

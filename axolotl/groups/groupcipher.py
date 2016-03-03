@@ -1,12 +1,14 @@
+# -*- coding: utf-8 -*-
+
 import sys
-from axolotl.invalidkeyidexception import InvalidKeyIdException
-from axolotl.invalidkeyexception import InvalidKeyException
-from axolotl.invalidmessageexception import InvalidMessageException
-from axolotl.duplicatemessagexception import DuplicateMessageException
-from axolotl.nosessionexception import NoSessionException
-from axolotl.groups.state.senderkeystore import SenderKeyStore
-from axolotl.protocol.senderkeymessage import SenderKeyMessage
-from axolotl.sessioncipher import AESCipher
+from ..invalidkeyidexception import InvalidKeyIdException
+from ..invalidkeyexception import InvalidKeyException
+from ..invalidmessageexception import InvalidMessageException
+from ..duplicatemessagexception import DuplicateMessageException
+from ..nosessionexception import NoSessionException
+from ..protocol.senderkeymessage import SenderKeyMessage
+from ..sessioncipher import AESCipher
+from ..groups.state.senderkeystore import SenderKeyStore
 class GroupCipher:
     def __init__(self, senderKeyStore, senderKeyName):
         """
@@ -20,18 +22,21 @@ class GroupCipher:
         """
         :type paddedPlaintext: str
         """
-        paddedPlaintext = bytearray(paddedPlaintext.encode() if sys.version_info > (3,0) else paddedPlaintext)
+        if sys.version_info >= (3, 0):
+            paddedPlaintext = bytearray(paddedPlaintext.encode())
+        else:
+            paddedPlaintext = bytearray(paddedPlaintext)
 
         try:
-            record         = self.senderKeyStore.loadSenderKey(self.senderKeyName)
+            record = self.senderKeyStore.loadSenderKey(self.senderKeyName)
             senderKeyState = record.getSenderKeyState()
-            senderKey      = senderKeyState.getSenderChainKey().getSenderMessageKey()
-            ciphertext     = self.getCipherText(senderKey.getIv(), senderKey.getCipherKey(), paddedPlaintext)
+            senderKey = senderKeyState.getSenderChainKey().getSenderMessageKey()
+            ciphertext = self.getCipherText(senderKey.getIv(), senderKey.getCipherKey(), paddedPlaintext)
 
             senderKeyMessage = SenderKeyMessage(senderKeyState.getKeyId(),
-                                                                 senderKey.getIteration(),
-                                                                 ciphertext,
-                                                                 senderKeyState.getSigningKeyPrivate())
+                                                senderKey.getIteration(),
+                                                ciphertext,
+                                                senderKeyState.getSigningKeyPrivate())
 
             senderKeyState.setSenderChainKey(senderKeyState.getSenderChainKey().getNext())
             self.senderKeyStore.storeSenderKey(self.senderKeyName, record)
@@ -45,11 +50,11 @@ class GroupCipher:
         :type senderKeyMessageBytes: bytearray
         """
         try:
-            record           = self.senderKeyStore.loadSenderKey(self.senderKeyName)
+            record = self.senderKeyStore.loadSenderKey(self.senderKeyName)
             if record.isEmpty():
                 raise NoSessionException("No sender key for: %s" % self.senderKeyName)
             senderKeyMessage = SenderKeyMessage(serialized = bytes(senderKeyMessageBytes))
-            senderKeyState   = record.getSenderKeyState(senderKeyMessage.getKeyId())
+            senderKeyState = record.getSenderKeyState(senderKeyMessage.getKeyId())
 
             senderKeyMessage.verifySignature(senderKeyState.getSigningKeyPublic())
 
@@ -62,7 +67,6 @@ class GroupCipher:
             return plaintext
         except (InvalidKeyException, InvalidKeyIdException) as e:
             raise InvalidMessageException(e)
-
 
     def getSenderKey(self, senderKeyState, iteration):
         senderChainKey = senderKeyState.getSenderChainKey()
@@ -84,7 +88,6 @@ class GroupCipher:
         senderKeyState.setSenderChainKey(senderChainKey.getNext())
         return senderChainKey.getSenderMessageKey()
 
-
     def getPlainText(self, iv, key, ciphertext):
         """
         :type iv: bytearray
@@ -94,7 +97,7 @@ class GroupCipher:
         try:
             cipher = AESCipher(key, iv)
             plaintext = cipher.decrypt(ciphertext)
-            if sys.version_info >= (3,0):
+            if sys.version_info >= (3, 0):
                 return plaintext.decode()
             return plaintext
         except Exception as e:

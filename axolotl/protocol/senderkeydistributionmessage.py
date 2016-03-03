@@ -1,12 +1,14 @@
+# -*- coding: utf-8 -*-
+
 from .ciphertextmessage import CiphertextMessage
 from . import whisperprotos
-from axolotl.util.byteutil import ByteUtil
-from axolotl.legacymessageexception import LegacyMessageException
-from axolotl.invalidmessageexception import InvalidMessageException
-from axolotl.invalidkeyexception import InvalidKeyException
-from axolotl.ecc.curve import Curve
+from ..util.byteutil import ByteUtil
+from ..legacymessageexception import LegacyMessageException
+from ..invalidmessageexception import InvalidMessageException
+from ..invalidkeyexception import InvalidKeyException
+from ..ecc.curve import Curve
 class SenderKeyDistributionMessage(CiphertextMessage):
-    def __init__(self, id = None, iteration = None, chainKey = None, signatureKey = None, serialized = None):
+    def __init__(self, id=None, iteration=None, chainKey=None, signatureKey=None, serialized=None):
         """
         :type id: int
         :type iteration: int
@@ -22,8 +24,8 @@ class SenderKeyDistributionMessage(CiphertextMessage):
         if serialized:
             try:
                 messageParts = ByteUtil.split(serialized, 1, len(serialized)- 1)
-                version      = messageParts[0][0]
-                message      = messageParts[1]
+                version = messageParts[0][0]
+                message = messageParts[1]
 
 
                 if ByteUtil.highBitsToInt(version) < 3:

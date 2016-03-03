@@ -1,9 +1,12 @@
-from axolotl.state.storageprotos import SenderKeyRecordStructure
-from axolotl.groups.state.senderkeystate import SenderKeyState
-from axolotl.invalidkeyidexception import InvalidKeyIdException
+# -*- coding: utf-8 -*-
+
+from ...state.storageprotos import SenderKeyRecordStructure
+from .senderkeystate import SenderKeyState
+from ...invalidkeyidexception import InvalidKeyIdException
+
 
 class SenderKeyRecord:
-    def __init__(self, serialized = None):
+    def __init__(self, serialized=None):
         self.senderKeyStates = []
 
         if serialized:
@@ -17,7 +20,7 @@ class SenderKeyRecord:
     def isEmpty(self):
         return len(self.senderKeyStates) == 0
 
-    def getSenderKeyState(self, keyId = None):
+    def getSenderKeyState(self, keyId=None):
         if keyId is None:
             if len(self.senderKeyStates):
                 return self.senderKeyStates[0]
@@ -28,7 +31,6 @@ class SenderKeyRecord:
                 if state.getKeyId() == keyId:
                     return state
             raise InvalidKeyIdException("No keys for: %s" % keyId)
-
 
     def addSenderKeyState(self, id, iteration, chainKey, signatureKey):
         """

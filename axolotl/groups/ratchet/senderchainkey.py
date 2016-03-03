@@ -1,6 +1,11 @@
-from .sendermessagekey import SenderMessageKey
+# -*- coding: utf-8 -*-
+
 import hashlib
 import hmac
+
+from .sendermessagekey import SenderMessageKey
+
+
 class SenderChainKey:
     MESSAGE_KEY_SEED = bytearray([0x01])
     CHAIN_KEY_SEED = bytearray([0x02])
@@ -26,5 +31,5 @@ class SenderChainKey:
         return self.chainKey
 
     def getDerivative(self, seed, key):
-        mac = hmac.new(bytes(key), bytes(seed), digestmod = hashlib.sha256)
+        mac = hmac.new(bytes(key), bytes(seed), digestmod=hashlib.sha256)
         return mac.digest()

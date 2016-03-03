@@ -1,4 +1,8 @@
+# -*- coding: utf-8 -*-
+
 import abc
+
+
 class SenderKeyStore(object):
     __metaclass__ = abc.ABCMeta
 

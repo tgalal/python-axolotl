@@ -1,8 +1,12 @@
-from axolotl.state.identitykeystore import IdentityKeyStore
-from axolotl.ecc.curve import Curve
-from axolotl.identitykey import IdentityKey
-from axolotl.util.keyhelper import KeyHelper
-from axolotl.identitykeypair import IdentityKeyPair
+# -*- coding: utf-8 -*-
+
+from ..state.identitykeystore import IdentityKeyStore
+from ..ecc.curve import Curve
+from ..identitykey import IdentityKey
+from ..util.keyhelper import KeyHelper
+from ..identitykeypair import IdentityKeyPair
+
+
 class InMemoryIdentityKeyStore(IdentityKeyStore):
     def __init__(self):
         self.trustedKeys = {}

@@ -1,22 +1,28 @@
+# -*- coding: utf-8 -*-
+
 import abc
 import hmac
 import hashlib
 import math
+
+
 class HKDF(object):
     __metaclass__ = abc.ABCMeta
-    HASH_OUTPUT_SIZE  = 32
+    HASH_OUTPUT_SIZE = 32
 
     @staticmethod
     def createFor(messageVersion):
-        from . import hkdfv2, hkdfv3
-        if messageVersion == 2:
-            return hkdfv2.HKDFv2()
-        elif messageVersion == 3:
-            return hkdfv3.HKDFv3()
-        else:
-            raise  AssertionError("Unknown version: %s " % messageVersion)
+        from .hkdfv2 import HKDFv2
+        from .hkdfv3 import HKDFv3
 
-    def deriveSecrets(self, inputKeyMaterial, info, outputLength, salt = None):
+        if messageVersion == 2:
+            return HKDFv2()
+        elif messageVersion == 3:
+            return HKDFv3()
+        else:
+            raise AssertionError("Unknown version: %s " % messageVersion)
+
+    def deriveSecrets(self, inputKeyMaterial, info, outputLength, salt=None):
         salt = salt or bytearray(self.__class__.HASH_OUTPUT_SIZE)
         prk = self.extract(salt, inputKeyMaterial)
         return self.expand(prk, info, outputLength)
@@ -27,8 +33,7 @@ class HKDF(object):
         return mac.digest()
 
     def expand(self, prk, info, outputSize):
-
-        iterations = int(math.ceil(float(outputSize)/ float(self.__class__.HASH_OUTPUT_SIZE)))
+        iterations = int(math.ceil(float(outputSize) / float(self.__class__.HASH_OUTPUT_SIZE)))
         mixin = bytearray()
         results = bytearray()
         remainingBytes = outputSize

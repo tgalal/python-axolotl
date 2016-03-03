@@ -1,20 +1,26 @@
-import struct
+# -*- coding: utf-8 -*-
+
+import binascii
+
 from .ec import ECPublicKey, ECPrivateKey
 from ..util.byteutil import ByteUtil
-from axolotl.ecc import curve
-import sys
-import binascii
+
+
 class DjbECPublicKey(ECPublicKey):
 
     def __init__(self, publicKey):
         self.publicKey = publicKey
 
     def serialize(self):
-        combined = ByteUtil.combine([curve.Curve.DJB_TYPE], self.publicKey)
+        from .curve import Curve
+
+        combined = ByteUtil.combine([Curve.DJB_TYPE], self.publicKey)
         return bytes(combined)
 
     def getType(self):
-        return curve.Curve.DJB_TYPE
+        from .curve import Curve
+
+        return Curve.DJB_TYPE
 
     def getPublicKey(self):
         return self.publicKey
@@ -39,13 +45,15 @@ class DjbECPublicKey(ECPublicKey):
         else:
             return 1
 
-class DjbECPrivateKey(ECPrivateKey):
 
+class DjbECPrivateKey(ECPrivateKey):
     def __init__(self, privateKey):
         self.privateKey = privateKey
 
     def getType(self):
-        return curve.Curve.DJB_TYPE
+        from .curve import Curve
+
+        return Curve.DJB_TYPE
 
     def getPrivateKey(self):
         return self.privateKey

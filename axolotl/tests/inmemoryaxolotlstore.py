@@ -1,8 +1,11 @@
-from axolotl.state.axolotlstore import AxolotlStore
-from axolotl.tests.inmemoryidentitykeystore import InMemoryIdentityKeyStore
-from axolotl.tests.inmemoryprekeystore import InMemoryPreKeyStore
-from axolotl.tests.inmemorysessionstore import InMemorySessionStore
-from axolotl.tests.inmemorysignedprekeystore import InMemorySignedPreKeyStore
+# -*- coding: utf8 -*-
+
+from ..state.axolotlstore import AxolotlStore
+from .inmemoryidentitykeystore import InMemoryIdentityKeyStore
+from .inmemoryprekeystore import InMemoryPreKeyStore
+from .inmemorysessionstore import InMemorySessionStore
+from .inmemorysignedprekeystore import InMemorySignedPreKeyStore
+
 
 class InMemoryAxolotlStore(AxolotlStore):
     def __init__(self):
