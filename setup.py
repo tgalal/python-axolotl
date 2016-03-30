@@ -5,12 +5,7 @@ import sys
 import axolotl
 from setuptools import find_packages, setup
 
-deps = ['pycrypto', 'python-axolotl-curve25519']
-
-if sys.version_info <= (3, 0):
-    deps += ['protobuf>=2.6,<3.0.0-alpha-2']
-else:
-    deps += ['protobuf==3.0.0.b2']
+deps = ['pycrypto', 'python-axolotl-curve25519', 'protobuf>=3.0.0.b2']
 
 setup(
     name='python-axolotl',
