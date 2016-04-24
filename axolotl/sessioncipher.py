@@ -19,7 +19,8 @@ from .duplicatemessagexception import DuplicateMessageException
 if sys.version_info >= (3, 0):
     unicode = str
 
-
+import  logging
+logger = logging.getLogger(__name__)
 class SessionCipher:
     def __init__(self, sessionStore, preKeyStore, signedPreKeyStore, identityKeyStore, recepientId, deviceId):
         self.sessionStore = sessionStore
@@ -85,7 +86,11 @@ class SessionCipher:
         self.sessionStore.storeSession(self.recipientId, self.deviceId, sessionRecord)
 
         if sys.version_info >= (3,0) and textMsg:
-            return plaintext.decode()
+            try:
+                return plaintext.decode()
+            except UnicodeDecodeError as e:
+                logger.warn(e)
+
         return plaintext
 
     def decryptPkmsg(self, ciphertext, textMsg=True):
@@ -103,7 +108,10 @@ class SessionCipher:
             self.preKeyStore.removePreKey(unsignedPreKeyId)
 
         if sys.version_info >= (3, 0) and textMsg:
-            return plaintext.decode()
+            try:
+                return plaintext.decode()
+            except UnicodeDecodeError as e:
+                logger.warn(e)
         return plaintext
 
     def decryptWithSessionRecord(self, sessionRecord, cipherText):
