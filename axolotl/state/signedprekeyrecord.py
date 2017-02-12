@@ -1,6 +1,6 @@
 # -*- coding; utf-8 -*-
 
-from .storageprotos import SignedPreKeyRecordStructure
+from .storageprotos_pb2 import SignedPreKeyRecordStructure
 from ..ecc.curve import Curve
 from ..ecc.eckeypair import ECKeyPair
 

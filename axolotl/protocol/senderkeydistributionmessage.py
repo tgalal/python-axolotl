@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from .ciphertextmessage import CiphertextMessage
-from . import whisperprotos
+from . import whisperprotos_pb2 as whisperprotos
 from ..util.byteutil import ByteUtil
 from ..legacymessageexception import LegacyMessageException
 from ..invalidmessageexception import InvalidMessageException

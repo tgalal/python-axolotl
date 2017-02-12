@@ -6,7 +6,7 @@ from ..legacymessageexception import LegacyMessageException
 from ..invalidmessageexception import InvalidMessageException
 from ..invalidkeyexception import InvalidKeyException
 from ..ecc.curve import Curve
-from . import whisperprotos
+from . import whisperprotos_pb2 as whisperprotos 
 
 
 class SenderKeyMessage(CiphertextMessage):
