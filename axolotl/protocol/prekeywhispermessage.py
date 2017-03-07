@@ -11,7 +11,7 @@ from ..invalidversionexception import InvalidVersionException
 from ..invalidmessageexception import InvalidMessageException
 from ..legacymessageexception import LegacyMessageException
 from ..invalidkeyexception import InvalidKeyException
-from . import whisperprotos
+from . import whisperprotos_pb2 as whisperprotos
 
 
 class PreKeyWhisperMessage(CiphertextMessage):

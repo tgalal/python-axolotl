@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from . import storageprotos
+from . import storageprotos_pb2 as storageprotos
 from .sessionstate import SessionState
 
 
