@@ -2,6 +2,7 @@
 
 import unittest
 import time
+import sys
 
 from ..sessionbuilder import SessionBuilder
 from ..sessioncipher import SessionCipher
@@ -58,6 +59,7 @@ class SessionBuilderTest(unittest.TestCase):
 
         bobSessionCipher = SessionCipher(bobStore, bobStore, bobStore, bobStore, self.__class__.ALICE_RECIPIENT_ID, 1)
         plaintext = bobSessionCipher.decryptPkmsg(incomingMessage)
+        if sys.version_info >= (3,0): plaintext = plaintext.decode()
 
         self.assertTrue(bobStore.containsSession(self.__class__.ALICE_RECIPIENT_ID, 1))
         self.assertTrue(bobStore.loadSession(self.__class__.ALICE_RECIPIENT_ID,
@@ -68,6 +70,7 @@ class SessionBuilderTest(unittest.TestCase):
         self.assertTrue(bobOutgoingMessage.getType() == CiphertextMessage.WHISPER_TYPE)
 
         alicePlaintext = aliceSessionCipher.decryptMsg(bobOutgoingMessage)
+        if sys.version_info >= (3,0): alicePlaintext = alicePlaintext.decode()
         self.assertEqual(alicePlaintext, originalMessage)
 
         self.runInteraction(aliceStore, bobStore)
@@ -103,6 +106,7 @@ class SessionBuilderTest(unittest.TestCase):
                                   PreKeyWhisperMessage(serialized=outgoingMessage.serialize()).getIdentityKey())
 
         plaintext = bobSessionCipher.decryptPkmsg(PreKeyWhisperMessage(serialized=outgoingMessage.serialize()))
+        if sys.version_info >= (3,0): plaintext = plaintext.decode()
         self.assertEqual(plaintext, originalMessage)
 
         bobPreKey = PreKeyBundle(bobStore.getLocalRegistrationId(), 1,
@@ -163,6 +167,7 @@ class SessionBuilderTest(unittest.TestCase):
         bobSessionCipher = SessionCipher(bobStore, bobStore, bobStore, bobStore, self.__class__.ALICE_RECIPIENT_ID, 1)
 
         plaintext = bobSessionCipher.decryptPkmsg(incomingMessage)
+        if sys.version_info >= (3,0): plaintext = plaintext.decode()
         self.assertEqual(originalMessage, plaintext)
         # @@TODO: in callback assertion
         # self.assertFalse(bobStore.containsSession(self.__class__.ALICE_RECIPIENT_ID, 1))
@@ -179,6 +184,7 @@ class SessionBuilderTest(unittest.TestCase):
         self.assertTrue(bobOutgoingMessage.getType() == CiphertextMessage.WHISPER_TYPE)
 
         alicePlaintext = aliceSessionCipher.decryptMsg(WhisperMessage(serialized=bobOutgoingMessage.serialize()))
+        if sys.version_info >= (3,0): alicePlaintext = alicePlaintext.decode()
         self.assertEqual(alicePlaintext, originalMessage)
 
         self.runInteraction(aliceStore, bobStore)
@@ -222,6 +228,7 @@ class SessionBuilderTest(unittest.TestCase):
                                   PreKeyWhisperMessage(serialized=outgoingMessage.serialize()).getIdentityKey())
 
         plaintext = bobSessionCipher.decryptPkmsg(PreKeyWhisperMessage(serialized=outgoingMessage.serialize()))
+        if sys.version_info >= (3,0): plaintext = plaintext.decode()
         self.assertEqual(plaintext, originalMessage)
 
         bobPreKey = PreKeyBundle(bobStore.getLocalRegistrationId(), 1, 31337,
@@ -340,6 +347,7 @@ class SessionBuilderTest(unittest.TestCase):
         self.assertTrue(aliceMessage.getType() == CiphertextMessage.WHISPER_TYPE)
 
         plaintext = bobSessionCipher.decryptMsg(WhisperMessage(serialized=aliceMessage.serialize()))
+        if sys.version_info >= (3,0): plaintext = plaintext.decode()
         self.assertEqual(plaintext, originalMessage)
 
         bobMessage = bobSessionCipher.encrypt(originalMessage)
@@ -347,6 +355,7 @@ class SessionBuilderTest(unittest.TestCase):
         self.assertTrue(bobMessage.getType() == CiphertextMessage.WHISPER_TYPE)
 
         plaintext = aliceSessionCipher.decryptMsg(WhisperMessage(serialized=bobMessage.serialize()))
+        if sys.version_info >= (3,0): plaintext = plaintext.decode()
         self.assertEqual(plaintext, originalMessage)
 
         for i in range(0, 10):
@@ -355,6 +364,7 @@ class SessionBuilderTest(unittest.TestCase):
                              "surges up in the world--and defines himself aftward. %s" % i
             aliceLoopingMessage = aliceSessionCipher.encrypt(loopingMessage)
             loopingPlaintext = bobSessionCipher.decryptMsg(WhisperMessage(serialized=aliceLoopingMessage.serialize()))
+            if sys.version_info >= (3,0): loopingPlaintext = loopingPlaintext.decode()
             self.assertEqual(loopingPlaintext, loopingMessage)
 
         for i in range(0, 10):
@@ -364,6 +374,7 @@ class SessionBuilderTest(unittest.TestCase):
             bobLoopingMessage = bobSessionCipher.encrypt(loopingMessage)
 
             loopingPlaintext = aliceSessionCipher.decryptMsg(WhisperMessage(serialized=bobLoopingMessage.serialize()))
+            if sys.version_info >= (3,0): loopingPlaintext = loopingPlaintext.decode()
             self.assertEqual(loopingPlaintext, loopingMessage)
 
         aliceOutOfOrderMessages = []
@@ -381,6 +392,7 @@ class SessionBuilderTest(unittest.TestCase):
                  "surges up in the world--and defines himself aftward. %s" % i
             aliceLoopingMessage = aliceSessionCipher.encrypt(loopingMessage)
             loopingPlaintext = bobSessionCipher.decryptMsg(WhisperMessage(serialized=aliceLoopingMessage.serialize()))
+            if sys.version_info >= (3,0): loopingPlaintext = loopingPlaintext.decode()
             self.assertEqual(loopingPlaintext, loopingMessage)
 
         for i in range(0, 10):
@@ -388,9 +400,11 @@ class SessionBuilderTest(unittest.TestCase):
             bobLoopingMessage = bobSessionCipher.encrypt(loopingMessage)
 
             loopingPlaintext = aliceSessionCipher.decryptMsg(WhisperMessage(serialized=bobLoopingMessage.serialize()))
+            if sys.version_info >= (3,0): loopingPlaintext = loopingPlaintext.decode()
             self.assertEqual(loopingPlaintext, loopingMessage)
 
         for aliceOutOfOrderMessage in aliceOutOfOrderMessages:
             outOfOrderPlaintext = bobSessionCipher.decryptMsg(WhisperMessage(
                 serialized=aliceOutOfOrderMessage[1].serialize()))
+            if sys.version_info >= (3,0): outOfOrderPlaintext = outOfOrderPlaintext.decode()
             self.assertEqual(outOfOrderPlaintext, aliceOutOfOrderMessage[0])

@@ -85,12 +85,6 @@ class SessionCipher:
 
         self.sessionStore.storeSession(self.recipientId, self.deviceId, sessionRecord)
 
-        if sys.version_info >= (3,0) and textMsg:
-            try:
-                return plaintext.decode()
-            except UnicodeDecodeError as e:
-                logger.warn(e)
-
         return plaintext
 
     def decryptPkmsg(self, ciphertext, textMsg=True):
@@ -107,11 +101,6 @@ class SessionCipher:
         if unsignedPreKeyId is not None:
             self.preKeyStore.removePreKey(unsignedPreKeyId)
 
-        if sys.version_info >= (3, 0) and textMsg:
-            try:
-                return plaintext.decode()
-            except UnicodeDecodeError as e:
-                logger.warn(e)
         return plaintext
 
     def decryptWithSessionRecord(self, sessionRecord, cipherText):
