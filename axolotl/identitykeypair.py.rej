@@ -1,0 +1,10 @@
+--- a/axolotl/identitykeypair.py
++++ b/axolotl/identitykeypair.py
+@@ -1,6 +1,6 @@
+ # -*- coding: utf-8 -*-
+ 
+-from .state.storageprotos import IdentityKeyPairStructure
++from .state.storageprotos_pb2 import IdentityKeyPairStructure
+ from .identitykey import IdentityKey
+ from .ecc.curve import Curve
+ 

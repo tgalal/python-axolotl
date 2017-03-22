@@ -1,0 +1,10 @@
+--- a/axolotl/state/prekeyrecord.py
++++ b/axolotl/state/prekeyrecord.py
+@@ -1,6 +1,6 @@
+ # -*- coding: utf-8 -*-
+ 
+-from .storageprotos import PreKeyRecordStructure
++from .storageprotos_pb2 import PreKeyRecordStructure
+ from ..ecc.curve import Curve
+ from ..ecc.eckeypair import ECKeyPair
+ 

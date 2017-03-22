@@ -4,7 +4,6 @@ from .storageprotos_pb2 import SignedPreKeyRecordStructure
 from ..ecc.curve import Curve
 from ..ecc.eckeypair import ECKeyPair
 
-
 class SignedPreKeyRecord:
     def __init__(self, _id=None, timestamp=None, ecKeyPair=None, signature=None, serialized=None):
         self.structure = SignedPreKeyRecordStructure()

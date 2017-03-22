@@ -1,0 +1,11 @@
+--- a/axolotl/protocol/keyexchangemessage.py
++++ b/axolotl/protocol/keyexchangemessage.py
+@@ -2,7 +2,7 @@
+ 
+ from .ciphertextmessage import CiphertextMessage
+ from ..util.byteutil import ByteUtil
+-from . import whisperprotos
++from . import whisperprotos_pb2 as whisperprotos
+ from ..legacymessageexception import LegacyMessageException
+ from ..invalidversionexception import InvalidVersionException
+ from ..invalidmessageexception import InvalidMessageException
