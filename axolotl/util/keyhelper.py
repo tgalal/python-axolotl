@@ -73,6 +73,10 @@ class KeyHelper:
         return results
 
     @staticmethod
+    def generateLastResortKey():
+        return PreKeyRecord(Medium.MAX_VALUE, Curve.generateKeyPair())
+
+    @staticmethod
     def generateSignedPreKey(identityKeyPair, signedPreKeyId):
         keyPair = Curve.generateKeyPair()
         signature = Curve.calculateSignature(identityKeyPair.getPrivateKey(), keyPair.getPublicKey().serialize())
