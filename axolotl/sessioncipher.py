@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import os
 
-import Crypto.Cipher.AES as AES
-from Crypto.Util import Counter
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.backends import default_backend
 
 from .ecc.curve import Curve
 from .sessionbuilder import SessionBuilder
@@ -203,7 +204,7 @@ class SessionCipher:
         if version >= 3:
             cipher = self.getCipher(messageKeys.getCipherKey(), messageKeys.getIv())
         else:
-            cipher = self.getCipher_v2(messageKeys.getCipherKey(), messageKeys.getCounter())
+            cipher = self.getCipher_v2(messageKeys.getCipherKey())
 
         return cipher.encrypt(bytes(plainText))
 
@@ -212,7 +213,7 @@ class SessionCipher:
         if version >= 3:
             cipher = self.getCipher(messageKeys.getCipherKey(), messageKeys.getIv())
         else:
-            cipher = self.getCipher_v2(messageKeys.getCipherKey(), messageKeys.getCounter())
+            cipher = self.getCipher_v2(messageKeys.getCipherKey())
 
         return cipher.decrypt(cipherText)
 
@@ -222,20 +223,9 @@ class SessionCipher:
         # return cipher
         return AESCipher(key, iv)
 
-    def getCipher_v2(self, key, counter):
+    def getCipher_v2(self, key):
         # AES/CTR/NoPadding
-        # counterbytes = struct.pack('>L', counter) + (b'\x00' * 12)
-        # counterint = struct.unpack(">L", counterbytes)[0]
-        # counterint = int.from_bytes(counterbytes, byteorder='big')
-        ctr = Counter.new(128, initial_value=counter)
-
-        # cipher = AES.new(key, AES.MODE_CTR, counter=ctr)
-        ivBytes = bytearray(16)
-        ByteUtil.intToByteArray(ivBytes, 0, counter)
-
-        cipher = AES.new(key, AES.MODE_CTR, IV=bytes(ivBytes), counter=ctr)
-
-        return cipher
+        return AESCipherV2(key)
 
 
 BS = 16
@@ -251,7 +241,7 @@ class AESCipher:
     def __init__(self, key, iv):
         self.key = key
         self.iv = iv
-        self.cipher = AES.new(key, AES.MODE_CBC, IV = iv)
+        self.cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
 
     def unpad(self, data):
         unpadLength = data[-1]
@@ -270,10 +260,30 @@ class AESCipher:
         #     rawPadded = pad(raw.decode()).encode()
         # else:
         rawPadded = pad(raw)
+        encryptor = self.cipher.encryptor()
         try:
-            return self.cipher.encrypt(rawPadded)
+            return encryptor.update(rawPadded) + encryptor.finalize()
         except ValueError:
             raise
 
     def decrypt(self, enc):
-        return self.unpad(self.cipher.decrypt(enc))
+        decryptor = self.cipher.decryptor()
+        return self.unpad(decryptor.update(enc) + decryptor.finalize())
+
+
+class AESCipherV2:
+    def __init__(self, key):
+        self.key = key
+        random = os.urandom(16)
+        self.cipher = Cipher(algorithms.AES(key), modes.CTR(random), backend=default_backend())
+
+    def encrypt(self, raw):
+        encryptor = self.cipher.encryptor()
+        try:
+            return encryptor.update(raw) + encryptor.finalize()
+        except ValueError:
+            raise
+
+    def decrypt(self, enc):
+        decryptor = self.cipher.decryptor()
+        return decryptor.update(enc) + decryptor.finalize()
