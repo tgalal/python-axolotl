@@ -228,13 +228,7 @@ class SessionCipher:
         # counterint = struct.unpack(">L", counterbytes)[0]
         # counterint = int.from_bytes(counterbytes, byteorder='big')
         ctr = Counter.new(128, initial_value=counter)
-
-        # cipher = AES.new(key, AES.MODE_CTR, counter=ctr)
-        ivBytes = bytearray(16)
-        ByteUtil.intToByteArray(ivBytes, 0, counter)
-
-        cipher = AES.new(key, AES.MODE_CTR, IV=bytes(ivBytes), counter=ctr)
-
+        cipher = AES.new(key, AES.MODE_CTR, counter=ctr)
         return cipher
 
 
