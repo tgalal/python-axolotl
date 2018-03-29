@@ -204,7 +204,7 @@ class SessionCipher:
         if version >= 3:
             cipher = self.getCipher(messageKeys.getCipherKey(), messageKeys.getIv())
         else:
-            cipher = self.getCipher_v2(messageKeys.getCipherKey())
+            cipher = self.getCipher_v2(messageKeys.getCipherKey(), messageKeys.getCounter())
 
         return cipher.encrypt(bytes(plainText))
 
@@ -213,7 +213,7 @@ class SessionCipher:
         if version >= 3:
             cipher = self.getCipher(messageKeys.getCipherKey(), messageKeys.getIv())
         else:
-            cipher = self.getCipher_v2(messageKeys.getCipherKey())
+            cipher = self.getCipher_v2(messageKeys.getCipherKey(), messageKeys.getCounter())
 
         return cipher.decrypt(cipherText)
 
@@ -223,9 +223,9 @@ class SessionCipher:
         # return cipher
         return AESCipher(key, iv)
 
-    def getCipher_v2(self, key):
+    def getCipher_v2(self, key, counter):
         # AES/CTR/NoPadding
-        return AESCipherV2(key)
+        return AESCipherV2(key, counter)
 
 
 BS = 16
@@ -272,10 +272,10 @@ class AESCipher:
 
 
 class AESCipherV2:
-    def __init__(self, key):
+    def __init__(self, key, counter):
         self.key = key
-        random = os.urandom(16)
-        self.cipher = Cipher(algorithms.AES(key), modes.CTR(random), backend=default_backend())
+        counter = counter.to_bytes(16, 'big')
+        self.cipher = Cipher(algorithms.AES(key), modes.CTR(counter), backend=default_backend())
 
     def encrypt(self, raw):
         encryptor = self.cipher.encryptor()
