@@ -236,6 +236,14 @@ else:
     pad = lambda s: s + (BS - len(s) % BS) * chr(BS - len(s) % BS)
     unpad = lambda s : s[0:-ord(s[-1])]
 
+if sys.version_info >= (3, 0):
+    to_bytes = int.to_bytes
+else:
+    def to_bytes(n, length, endianess='big'):
+        h = '%x' % n
+        s = ('0'*(len(h) % 2) + h).zfill(length*2).decode('hex')
+        return s if endianess == 'big' else s[::-1]
+
 
 class AESCipher:
     def __init__(self, key, iv):
@@ -274,7 +282,7 @@ class AESCipher:
 class AESCipherV2:
     def __init__(self, key, counter):
         self.key = key
-        counter = counter.to_bytes(16, 'big')
+        counter = to_bytes(counter, 16, 'big')
         self.cipher = Cipher(algorithms.AES(key), modes.CTR(counter), backend=default_backend())
 
     def encrypt(self, raw):
