@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import binascii
+import struct
 
 from .ec import ECPublicKey, ECPrivateKey
 from ..util.byteutil import ByteUtil
@@ -29,14 +29,14 @@ class DjbECPublicKey(ECPublicKey):
         return self.publicKey == other.getPublicKey()
 
     def __lt__(self, other):
-        myVal = int(binascii.hexlify(self.publicKey), 16)
-        otherVal = int(binascii.hexlify(other.getPublicKey()), 16)
+        myVal = struct.unpack(">8i", self.publicKey)
+        otherVal = struct.unpack(">8i", other.getPublicKey())
 
         return myVal < otherVal
 
     def __cmp__(self, other):
-        myVal = int(binascii.hexlify(self.publicKey), 16)
-        otherVal = int(binascii.hexlify(other.getPublicKey()), 16)
+        myVal = struct.unpack(">8i", self.publicKey)
+        otherVal = struct.unpack(">8i", other.getPublicKey())
 
         if myVal < otherVal:
             return -1
