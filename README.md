@@ -17,7 +17,7 @@ Read rest of of details [here](https://github.com/WhisperSystems/libaxolotl-andr
 The library has some dependencies which are automatically pulled and installed if you use the instructions below for your OS
 
  - [protobuf 2.6+](https://github.com/google/protobuf/)
- - [pycrypto](https://www.dlitz.net/software/pycrypto/)
+ - [cryptography](https://cryptography.io)
  - [python-axolotl-curve25519](https://github.com/tgalal/python-axolotl-curve25519)
 
 ## Linux
@@ -45,10 +45,6 @@ compiler=mingw32
  - Install gcc: ```mingw-get.exe install gcc```
  - Install [zlib](http://www.zlib.net/)
  - ```python setup.py install```
-
-If pycrypto fails to install with some "chmod error". You can install it separately using something like 
-```easy_install http://www.voidspace.org.uk/downloads/pycrypto26/pycrypto-2.6.win32-py2.7.exe```
-and then rerun the install command again
 
 
 # Usage
