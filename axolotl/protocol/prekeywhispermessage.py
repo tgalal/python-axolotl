@@ -24,11 +24,13 @@ class PreKeyWhisperMessage(CiphertextMessage):
                 if self.version > CiphertextMessage.CURRENT_VERSION:
                     raise InvalidVersionException("Unknown version %s" % self.version)
 
+                if self.version < CiphertextMessage.CURRENT_VERSION:
+                    raise LegacyMessageException("Legacy version: %s" % self.version)
+
                 preKeyWhisperMessage = whisperprotos.PreKeyWhisperMessage()
                 preKeyWhisperMessage.ParseFromString(serialized[1:])
 
-                if (self.version == 2 and preKeyWhisperMessage.preKeyId is None) or \
-                        (self.version == 3 and preKeyWhisperMessage.signedPreKeyId is None) or \
+                if not preKeyWhisperMessage.signedPreKeyId or \
                         not preKeyWhisperMessage.baseKey or \
                         not preKeyWhisperMessage.identityKey or \
                         not preKeyWhisperMessage.message:

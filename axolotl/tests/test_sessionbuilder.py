@@ -4,6 +4,7 @@ import unittest
 import time
 import sys
 
+from ..invalidkeyexception import InvalidKeyException
 from ..sessionbuilder import SessionBuilder
 from ..sessioncipher import SessionCipher
 from ..ecc.curve import Curve
@@ -37,86 +38,10 @@ class SessionBuilderTest(unittest.TestCase):
         bobPreKey = PreKeyBundle(bobStore.getLocalRegistrationId(), 1, 31337, bobPreKeyPair.getPublicKey(),
                                  0, None, None, bobStore.getIdentityKeyPair().getPublicKey())
 
-        aliceSessionBuilder.processPreKeyBundle(bobPreKey)
-
-        self.assertTrue(aliceStore.containsSession(self.__class__.BOB_RECIPIENT_ID, 1))
-        self.assertEqual(aliceStore.loadSession(self.__class__.BOB_RECIPIENT_ID,
-                                                1).getSessionState().getSessionVersion(), 2)
-
-        originalMessage = "L'homme est condamné à être libre"
-        aliceSessionCipher = SessionCipher(aliceStore,
-                                           aliceStore,
-                                           aliceStore,
-                                           aliceStore,
-                                           self.__class__.BOB_RECIPIENT_ID,
-                                           1)
-        outgoingMessage = aliceSessionCipher.encrypt(originalMessage)
-
-        self.assertTrue(outgoingMessage.getType() == CiphertextMessage.PREKEY_TYPE)
-
-        incomingMessage = PreKeyWhisperMessage(serialized=outgoingMessage.serialize())
-        bobStore.storePreKey(31337, PreKeyRecord(bobPreKey.getPreKeyId(), bobPreKeyPair))
-
-        bobSessionCipher = SessionCipher(bobStore, bobStore, bobStore, bobStore, self.__class__.ALICE_RECIPIENT_ID, 1)
-        plaintext = bobSessionCipher.decryptPkmsg(incomingMessage)
-        if sys.version_info >= (3,0): plaintext = plaintext.decode()
-
-        self.assertTrue(bobStore.containsSession(self.__class__.ALICE_RECIPIENT_ID, 1))
-        self.assertTrue(bobStore.loadSession(self.__class__.ALICE_RECIPIENT_ID,
-                        1).getSessionState().getSessionVersion() == 2)
-        self.assertEqual(originalMessage, plaintext)
-
-        bobOutgoingMessage = bobSessionCipher.encrypt(originalMessage)
-        self.assertTrue(bobOutgoingMessage.getType() == CiphertextMessage.WHISPER_TYPE)
-
-        alicePlaintext = aliceSessionCipher.decryptMsg(bobOutgoingMessage)
-        if sys.version_info >= (3,0): alicePlaintext = alicePlaintext.decode()
-        self.assertEqual(alicePlaintext, originalMessage)
-
-        self.runInteraction(aliceStore, bobStore)
-
-        aliceStore = InMemoryAxolotlStore()
-        aliceSessionBuilder = SessionBuilder(aliceStore,
-                                             aliceStore,
-                                             aliceStore,
-                                             aliceStore,
-                                             self.__class__.BOB_RECIPIENT_ID,
-                                             1)
-        aliceSessionCipher = SessionCipher(aliceStore,
-                                           aliceStore,
-                                           aliceStore,
-                                           aliceStore,
-                                           self.__class__.BOB_RECIPIENT_ID,
-                                           1)
-
-        bobPreKeyPair = Curve.generateKeyPair()
-        bobPreKey = PreKeyBundle(bobStore.getLocalRegistrationId(),
-                                 1, 31338, bobPreKeyPair.getPublicKey(),
-                                 0, None, None, bobStore.getIdentityKeyPair().getPublicKey())
-
-        bobStore.storePreKey(31338, PreKeyRecord(bobPreKey.getPreKeyId(), bobPreKeyPair))
-        aliceSessionBuilder.processPreKeyBundle(bobPreKey)
-
-        outgoingMessage = aliceSessionCipher.encrypt(originalMessage)
-        try:
-            bobSessionCipher.decryptPkmsg(PreKeyWhisperMessage(serialized=outgoingMessage.serialize()))
-            raise AssertionError("shouldn't be trusted!")
-        except Exception:
-            bobStore.saveIdentity(self.__class__.ALICE_RECIPIENT_ID,
-                                  PreKeyWhisperMessage(serialized=outgoingMessage.serialize()).getIdentityKey())
-
-        plaintext = bobSessionCipher.decryptPkmsg(PreKeyWhisperMessage(serialized=outgoingMessage.serialize()))
-        if sys.version_info >= (3,0): plaintext = plaintext.decode()
-        self.assertEqual(plaintext, originalMessage)
-
-        bobPreKey = PreKeyBundle(bobStore.getLocalRegistrationId(), 1,
-                                 31337, Curve.generateKeyPair().getPublicKey(),
-                                 0, None, None,
-                                 aliceStore.getIdentityKeyPair().getPublicKey())
         try:
             aliceSessionBuilder.processPreKeyBundle(bobPreKey)
-            raise AssertionError("shouldn't be trusted")
-        except Exception:
+            raise AssertionError("Should fail with missing unsigned prekey!");
+        except InvalidKeyException:
             # good
             pass
 

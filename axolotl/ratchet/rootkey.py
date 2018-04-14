@@ -16,7 +16,7 @@ class RootKey:
     def createChain(self, ECPublicKey_theirRatchetKey, ECKeyPair_ourRatchetKey):
         sharedSecret = Curve.calculateAgreement(ECPublicKey_theirRatchetKey, ECKeyPair_ourRatchetKey.getPrivateKey())
         derivedSecretBytes = self.kdf.deriveSecrets(sharedSecret,
-                                                    bytearray("WhisperRatchet".encode()),
+                                                    "WhisperRatchet".encode(),
                                                     DerivedRootSecrets.SIZE,
                                                     salt=self.key)
         derivedSecrets = DerivedRootSecrets(derivedSecretBytes)

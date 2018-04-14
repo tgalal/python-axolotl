@@ -36,66 +36,16 @@ class SessionBuilder:
         :type message: PreKeyWhisperMessage
         """
 
-        messageVersion = message.getMessageVersion()
         theirIdentityKey = message.getIdentityKey()
-
-        unsignedPreKeyId = None
 
         if not self.identityKeyStore.isTrustedIdentity(self.recipientId, theirIdentityKey):
             raise UntrustedIdentityException(self.recipientId, theirIdentityKey)
 
-        if messageVersion == 2:
-            unsignedPreKeyId = self.processV2(sessionRecord, message)
-        elif messageVersion == 3:
-            unsignedPreKeyId = self.processV3(sessionRecord, message)
-        else:
-            raise AssertionError("Unkown version %s" % messageVersion)
+        unsignedPreKeyId = self.processV3(sessionRecord, message)
 
         self.identityKeyStore.saveIdentity(self.recipientId, theirIdentityKey)
 
         return unsignedPreKeyId
-
-    def processV2(self, sessionRecord, message):
-        """
-        :type sessionRecord: SessionRecord
-        :type message: PreKeyWhisperMessage
-        """
-
-        if message.getPreKeyId() is None:
-            raise InvalidKeyIdException("V2 message requires one time prekey id!")
-
-        if not self.preKeyStore.containsPreKey(message.getPreKeyId()) and \
-                self.sessionStore.containsSession(self.recipientId, self.deviceId):
-            logging.warn("We've already processed the prekey part of this V2 session, "
-                         "letting bundled message fall through...")
-            return None
-
-        ourPreKey = self.preKeyStore.loadPreKey(message.getPreKeyId()).getKeyPair()
-
-        parameters = BobAxolotlParameters.newBuilder()
-
-        parameters.setOurIdentityKey(self.identityKeyStore.getIdentityKeyPair())\
-            .setOurSignedPreKey(ourPreKey)\
-            .setOurRatchetKey(ourPreKey)\
-            .setOurOneTimePreKey(None)\
-            .setTheirIdentityKey(message.getIdentityKey())\
-            .setTheirBaseKey(message.getBaseKey())
-
-        if not sessionRecord.isFresh():
-            sessionRecord.archiveCurrentState()
-
-        RatchetingSession.initializeSessionAsBob(sessionRecord.getSessionState(),
-                                                 message.getMessageVersion(),
-                                                 parameters.create())
-
-        sessionRecord.getSessionState().setLocalRegistrationId(self.identityKeyStore.getLocalRegistrationId())
-        sessionRecord.getSessionState().setRemoteRegistrationId(message.getRegistrationId())
-        sessionRecord.getSessionState().setAliceBaseKey(message.getBaseKey().serialize())
-
-        if message.getPreKeyId() != Medium.MAX_VALUE:
-            return message.getPreKeyId()
-        else:
-            return None
 
     def processV3(self, sessionRecord, message):
         """
@@ -125,9 +75,7 @@ class SessionBuilder:
         if not sessionRecord.isFresh():
             sessionRecord.archiveCurrentState()
 
-        RatchetingSession.initializeSessionAsBob(sessionRecord.getSessionState(),
-                                                 message.getMessageVersion(),
-                                                 parameters.create())
+        RatchetingSession.initializeSessionAsBob(sessionRecord.getSessionState(), parameters.create())
         sessionRecord.getSessionState().setLocalRegistrationId(self.identityKeyStore.getLocalRegistrationId())
         sessionRecord.getSessionState().setRemoteRegistrationId(message.getRegistrationId())
         sessionRecord.getSessionState().setAliceBaseKey(message.getBaseKey().serialize())
@@ -150,13 +98,12 @@ class SessionBuilder:
                                       preKey.getSignedPreKeySignature()):
             raise InvalidKeyException("Invalid signature on device key!")
 
-        if preKey.getSignedPreKey() is None and preKey.getPreKey() is None:
-            raise InvalidKeyException("Both signed and unsigned prekeys are absent!")
+        if preKey.getSignedPreKey() is None:
+            raise InvalidKeyException("No signed prekey!!")
 
-        supportsV3 = preKey.getSignedPreKey() is not None
         sessionRecord = self.sessionStore.loadSession(self.recipientId, self.deviceId)
         ourBaseKey = Curve.generateKeyPair()
-        theirSignedPreKey = preKey.getSignedPreKey() if supportsV3 else preKey.getPreKey()
+        theirSignedPreKey = preKey.getSignedPreKey()
         theirOneTimePreKey = preKey.getPreKey()
         theirOneTimePreKeyId = preKey.getPreKeyId() if theirOneTimePreKey is not None else None
 
@@ -167,14 +114,12 @@ class SessionBuilder:
             .setTheirIdentityKey(preKey.getIdentityKey())\
             .setTheirSignedPreKey(theirSignedPreKey)\
             .setTheirRatchetKey(theirSignedPreKey)\
-            .setTheirOneTimePreKey(theirOneTimePreKey if supportsV3 else None)
+            .setTheirOneTimePreKey(theirOneTimePreKey)
 
         if not sessionRecord.isFresh():
             sessionRecord.archiveCurrentState()
 
-        RatchetingSession.initializeSessionAsAlice(sessionRecord.getSessionState(),
-                                                   3 if supportsV3 else 2,
-                                                   parameters.create())
+        RatchetingSession.initializeSessionAsAlice(sessionRecord.getSessionState(), parameters.create())
 
         sessionRecord.getSessionState().setUnacknowledgedPreKeyMessage(theirOneTimePreKeyId,
                                                                        preKey.getSignedPreKeyId(),
@@ -203,7 +148,7 @@ class SessionBuilder:
         flags = KeyExchangeMessage.RESPONSE_FLAG
         sessionRecord = self.sessionStore.loadSession(self.recipientId, self.deviceId)
 
-        if keyExchangeMessage.getVersion() >= 3 and not Curve.verifySignature(
+        if not Curve.verifySignature(
                 keyExchangeMessage.getIdentityKey().getPublicKey(),
                 keyExchangeMessage.getBaseKey().serialize(),
                 keyExchangeMessage.getBaseKeySignature()):
@@ -229,9 +174,7 @@ class SessionBuilder:
         if not sessionRecord.isFresh():
             sessionRecord.archiveCurrentState()
 
-        RatchetingSession.initializeSession(sessionRecord.getSessionState(),
-                                            min(keyExchangeMessage.getMaxVersion(), CiphertextMessage.CURRENT_VERSION),
-                                            parameters)
+        RatchetingSession.initializeSession(sessionRecord.getSessionState(), parameters)
 
         self.sessionStore.storeSession(self.recipientId, self.deviceId, sessionRecord)
         self.identityKeyStore.saveIdentity(self.recipientId, keyExchangeMessage.getIdentityKey())
@@ -272,11 +215,9 @@ class SessionBuilder:
         if not sessionRecord.isFresh():
             sessionRecord.archiveCurrentState()
 
-        RatchetingSession.initializeSession(sessionRecord.getSessionState(),
-                                            min(keyExchangeMessage.getMaxVersion(), CiphertextMessage.CURRENT_VERSION),
-                                            parameters.create())
+        RatchetingSession.initializeSession(sessionRecord.getSessionState(), parameters.create())
 
-        if sessionRecord.getSessionState().getSessionVersion() >= 3 and not Curve.verifySignature(
+        if not Curve.verifySignature(
                 keyExchangeMessage.getIdentityKey().getPublicKey(),
                 keyExchangeMessage.getBaseKey().serialize(),
                 keyExchangeMessage.getBaseKeySignature()):
@@ -298,7 +239,7 @@ class SessionBuilder:
             sessionRecord.getSessionState().setPendingKeyExchange(sequence, baseKey, ratchetKey, identityKey)
             self.sessionStore.storeSession(self.recipientId, self.deviceId, sessionRecord)
 
-            return KeyExchangeMessage(2, sequence, flags, baseKey.getPublicKey(), baseKeySignature,
+            return KeyExchangeMessage(CiphertextMessage.CURRENT_VERSION, sequence, flags, baseKey.getPublicKey(), baseKeySignature,
                                       ratchetKey.getPublicKey(), identityKey.getPublicKey())
         except InvalidKeyException as e:
             raise AssertionError(e)

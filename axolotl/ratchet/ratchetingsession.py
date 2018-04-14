@@ -3,18 +3,18 @@
 from ..ecc.curve import Curve
 from .bobaxolotlparamaters import BobAxolotlParameters
 from .aliceaxolotlparameters import AliceAxolotlParameters
-from ..kdf.hkdf import HKDF
+from ..kdf.hkdfv3 import HKDFv3
 from ..util.byteutil import ByteUtil
 from .rootkey import RootKey
 from .chainkey import ChainKey
+from ..protocol.ciphertextmessage import CiphertextMessage
 
 
 class RatchetingSession:
     @staticmethod
-    def initializeSession(sessionState, sessionVersion, parameters):
+    def initializeSession(sessionState, parameters):
         """
         :type sessionState: SessionState
-        :type sessionVersion: int
         :type parameters: SymmetricAxolotlParameters
         """
         if RatchetingSession.isAlice(parameters.getOurBaseKey().getPublicKey(), parameters.getTheirBaseKey()):
@@ -25,7 +25,7 @@ class RatchetingSession:
                 .setTheirIdentityKey(parameters.getTheirIdentityKey()) \
                 .setTheirSignedPreKey(parameters.getTheirBaseKey()) \
                 .setTheirOneTimePreKey(None)
-            RatchetingSession.initializeSessionAsAlice(sessionState, sessionVersion, aliceParameters.create())
+            RatchetingSession.initializeSessionAsAlice(sessionState, aliceParameters.create())
         else:
             bobParameters = BobAxolotlParameters.newBuilder()
             bobParameters.setOurIdentityKey(parameters.getOurIdentityKey()) \
@@ -34,24 +34,22 @@ class RatchetingSession:
                 .setOurOneTimePreKey(None) \
                 .setTheirBaseKey(parameters.getTheirBaseKey()) \
                 .setTheirIdentityKey(parameters.getTheirIdentityKey())
-            RatchetingSession.initializeSessionAsBob(sessionState, sessionVersion, bobParameters.create())
+            RatchetingSession.initializeSessionAsBob(sessionState, bobParameters.create())
 
     @staticmethod
-    def initializeSessionAsAlice(sessionState, sessionVersion, parameters):
+    def initializeSessionAsAlice(sessionState, parameters):
         """
         :type sessionState: SessionState
-        :type sessionVersion: int
         :type parameters: AliceAxolotlParameters
         """
-        sessionState.setSessionVersion(sessionVersion)
+        sessionState.setSessionVersion(CiphertextMessage.CURRENT_VERSION)
         sessionState.setRemoteIdentityKey(parameters.getTheirIdentityKey())
         sessionState.setLocalIdentityKey(parameters.getOurIdentityKey().getPublicKey())
 
         sendingRatchetKey = Curve.generateKeyPair()
         secrets = bytearray()
 
-        if sessionVersion >= 3:
-            secrets.extend(RatchetingSession.getDiscontinuityBytes())
+        secrets.extend(RatchetingSession.getDiscontinuityBytes())
 
         secrets.extend(Curve.calculateAgreement(parameters.getTheirSignedPreKey(),
                                                 parameters.getOurIdentityKey().getPrivateKey()))
@@ -60,11 +58,11 @@ class RatchetingSession:
         secrets.extend(Curve.calculateAgreement(parameters.getTheirSignedPreKey(),
                                                 parameters.getOurBaseKey().getPrivateKey()))
 
-        if sessionVersion >= 3 and parameters.getTheirOneTimePreKey() is not None:
+        if parameters.getTheirOneTimePreKey() is not None:
             secrets.extend(Curve.calculateAgreement(parameters.getTheirOneTimePreKey(),
                                                     parameters.getOurBaseKey().getPrivateKey()))
 
-        derivedKeys = RatchetingSession.calculateDerivedKeys(sessionVersion, secrets)
+        derivedKeys = RatchetingSession.calculateDerivedKeys(secrets)
         sendingChain = derivedKeys.getRootKey().createChain(parameters.getTheirRatchetKey(), sendingRatchetKey)
 
         sessionState.addReceiverChain(parameters.getTheirRatchetKey(), derivedKeys.getChainKey())
@@ -72,20 +70,18 @@ class RatchetingSession:
         sessionState.setRootKey(sendingChain[0])
 
     @staticmethod
-    def initializeSessionAsBob(sessionState, sessionVersion, parameters):
+    def initializeSessionAsBob(sessionState, parameters):
         """
         :type sessionState: SessionState
-        :type sessionVersion: int
         :type parameters: BobAxolotlParameters
         """
-        sessionState.setSessionVersion(sessionVersion)
+        sessionState.setSessionVersion(CiphertextMessage.CURRENT_VERSION)
         sessionState.setRemoteIdentityKey(parameters.getTheirIdentityKey())
         sessionState.setLocalIdentityKey(parameters.getOurIdentityKey().getPublicKey())
 
         secrets = bytearray()
 
-        if sessionVersion >= 3:
-            secrets.extend(RatchetingSession.getDiscontinuityBytes())
+        secrets.extend(RatchetingSession.getDiscontinuityBytes())
 
         secrets.extend(Curve.calculateAgreement(parameters.getTheirIdentityKey().getPublicKey(),
                                                 parameters.getOurSignedPreKey().getPrivateKey()))
@@ -95,11 +91,11 @@ class RatchetingSession:
         secrets.extend(Curve.calculateAgreement(parameters.getTheirBaseKey(),
                                                 parameters.getOurSignedPreKey().getPrivateKey()))
 
-        if sessionVersion >= 3 and parameters.getOurOneTimePreKey() is not None:
+        if parameters.getOurOneTimePreKey() is not None:
             secrets.extend(Curve.calculateAgreement(parameters.getTheirBaseKey(),
                                                     parameters.getOurOneTimePreKey().getPrivateKey()))
 
-        derivedKeys = RatchetingSession.calculateDerivedKeys(sessionVersion, secrets)
+        derivedKeys = RatchetingSession.calculateDerivedKeys(secrets)
         sessionState.setSenderChain(parameters.getOurRatchetKey(), derivedKeys.getChainKey())
         sessionState.setRootKey(derivedKeys.getRootKey())
 
@@ -108,8 +104,8 @@ class RatchetingSession:
         return bytearray([0xFF] * 32)
 
     @staticmethod
-    def calculateDerivedKeys(sessionVersion, masterSecret):
-        kdf = HKDF.createFor(sessionVersion)
+    def calculateDerivedKeys(masterSecret):
+        kdf = HKDFv3()
         derivedSecretBytes = kdf.deriveSecrets(masterSecret,  bytearray("WhisperText".encode()), 64)
         derivedSecrets = ByteUtil.split(derivedSecretBytes, 32, 32)
         return RatchetingSession.DerivedKeys(RootKey(kdf, derivedSecrets[0]),

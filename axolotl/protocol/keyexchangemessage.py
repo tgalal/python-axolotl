@@ -33,7 +33,7 @@ class KeyExchangeMessage:
                 parts = ByteUtil.split(serialized, 1, len(serialized) - 1)
                 self.version = ByteUtil.highBitsToInt(parts[0][0])
                 self.supportedVersion = ByteUtil.lowBitsToInt(parts[0][0])
-                if self.version <= CiphertextMessage.UNSUPPORTED_VERSION:
+                if self.version < CiphertextMessage.CURRENT_VERSION:
                     raise LegacyMessageException("Unsupportmessageed legacy version: %s" % self.version)
                 if self.version > CiphertextMessage.CURRENT_VERSION:
                     raise InvalidVersionException("Unkown version: %s" % self.version)
@@ -42,7 +42,7 @@ class KeyExchangeMessage:
 
                 if (not message.HasField("id") or not message.HasField("baseKey") or
                         not message.HasField("ratchetKey") or not message.HasField("identityKey") or
-                        (self.version >= 3 and not message.HasField("baseKeySignature"))):
+                        not message.HasField("baseKeySignature")):
                     raise InvalidMessageException("Some required fields are missing!")
 
                 self.sequence = message.id >> 5
