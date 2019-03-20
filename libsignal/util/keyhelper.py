@@ -40,8 +40,7 @@ class KeyHelper:
         Generate a registration ID.  Clients should only do this once,
         at install time.
         """
-        regId = KeyHelper.getRandomSequence()
-        return regId
+        return KeyHelper.getRandomSequence() & 0x7fffffff
 
     @staticmethod
     def getRandomSequence(max=4294967296):
