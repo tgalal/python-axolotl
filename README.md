@@ -1,4 +1,8 @@
-This is a python port of [libsignal-protocol-java](https://github.com/WhisperSystems/libaxolotl-android) originally written by [Moxie Marlinspike](https://github.com/moxie0)
+libsignal-python
+========
+
+This is a python port of [libsignal-protocol-java](https://github.com/WhisperSystems/libaxolotl-android)
+originally written by [Moxie Marlinspike](https://github.com/moxie0)
 
 Compare with
 [libsignal-protocol-php](https://github.com/albert-chin/libsignal-protocol-php)
@@ -8,15 +12,21 @@ which is a php port.
 
 Overview from original author's:
 
- > This is a ratcheting forward secrecy protocol that works in synchronous and asynchronous messaging environments. The protocol overview is available [here](https://github.com/trevp/axolotl/wiki), and the details of the wire format are available [here](https://github.com/trevp/axolotl/wiki).
+ > This is a ratcheting forward secrecy protocol that works in synchronous
+ > and asynchronous messaging environments. The protocol overview is available
+ > [here](https://github.com/trevp/axolotl/wiki), and the details of the wire
+ > format are available [here](https://github.com/trevp/axolotl/wiki).
  
 Read rest of of details [here](https://github.com/WhisperSystems/libaxolotl-android/blob/master/README.md).
 
-# Installation
+Install
+--------
 
-The library has some dependencies which are automatically pulled and installed if you use the instructions below for your OS
 
- - [protobuf 2.6+](https://github.com/google/protobuf/)
+The library has some dependencies which are automatically pulled and installed
+if you use the instructions below for your OS
+
+ - [protobuf 3.6+](https://github.com/google/protobuf/)
  - [cryptography](https://cryptography.io)
  - [python-axolotl-curve25519](https://github.com/tgalal/python-axolotl-curve25519)
 
@@ -47,9 +57,12 @@ compiler=mingw32
  - ```python setup.py install```
 
 
-# Usage
+Usage
+--------
 
-This python port is done in an almost 1:1 mapping to the original java code. Therefore any original documentation for the java code can be easily mapped and used with this python port.
+This python port is done in an almost 1:1 mapping to the original java code.
+Therefore any original documentation for the java code can be easily mapped
+and used with this python port.
 
 ## Install time
 
@@ -97,10 +110,15 @@ message       = sessionCipher.encrypt("Hello world!")
 deliver(message.serialize())
 ```
 
-# Examples
 
-python-axolotl is actively used in [yowsup](https://github.com/tgalal/yowsup) to support the new end to end encryption in WhatsApp
+Examples
+--------
 
-# License
+python-axolotl is actively used in [yowsup](https://github.com/tgalal/yowsup) to
+support the new end to end encryption in WhatsApp
+
+
+License
+--------
 
 Licensed under the GPLv3: http://www.gnu.org/licenses/gpl-3.0.html
