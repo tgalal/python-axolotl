@@ -1,6 +1,14 @@
 libsignal-python
 ========
+Signal encryption library for Python.
 
+[![Maturity](https://img.shields.io/pypi/status/libsignal.svg)](https://pypi.python.org/pypi/libsignal)
+[![License](https://img.shields.io/pypi/l/libsignal.svg)](https://pypi.python.org/pypi/libsignal)
+[![Version](https://img.shields.io/pypi/v/libsignal.svg)](https://pypi.python.org/pypi/libsignal)
+
+
+About
+--------
 This is a python port of [libsignal-protocol-java](https://github.com/WhisperSystems/libaxolotl-android)
 originally written by [Moxie Marlinspike](https://github.com/moxie0)
 
@@ -19,10 +27,9 @@ Overview from original author's:
  
 Read rest of of details [here](https://github.com/WhisperSystems/libaxolotl-android/blob/master/README.md).
 
-Install
+
+Installation
 --------
-
-
 The library has some dependencies which are automatically pulled and installed
 if you use the instructions below for your OS
 
@@ -59,7 +66,6 @@ compiler=mingw32
 
 Usage
 --------
-
 This python port is done in an almost 1:1 mapping to the original java code.
 Therefore any original documentation for the java code can be easily mapped
 and used with this python port.
@@ -113,12 +119,10 @@ deliver(message.serialize())
 
 Examples
 --------
-
 python-axolotl is actively used in [yowsup](https://github.com/tgalal/yowsup) to
 support the new end to end encryption in WhatsApp
 
 
 License
 --------
-
 Licensed under the GPLv3: http://www.gnu.org/licenses/gpl-3.0.html
