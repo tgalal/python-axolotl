@@ -2,22 +2,12 @@
 
 from setuptools import setup, find_packages
 
-README = 'README.md'
-
-
-def long_desc():
-    try:
-        import pypandoc
-    except ImportError:
-        with open(README) as f:
-            return f.read()
-    else:
-        return pypandoc.convert(README, 'rst')
-
+with open("README.md", "r") as fh:
+    long_description = fh.read()
 
 setup(
     name='libsignal',
-    version='0.0.0',
+    version='0.0.1',
     packages=find_packages(),
     install_requires=[
         'cryptography',
@@ -26,7 +16,8 @@ setup(
     ],
     license='GPLv3 License',
     description="Python port of libsignal-protocol-java",
-    long_description=long_desc(),
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     url='https://github.com/ForstaLabs/libsignal-python',
     platforms='any',
     classifiers=[
