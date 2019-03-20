@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name='libsignal',
-    version='0.0.2',
+    version='0.0.3',
     packages=find_packages(),
     install_requires=[
         'cryptography',
