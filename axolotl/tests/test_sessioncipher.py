@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-import sys
 
 from ..state.sessionrecord import SessionRecord
 from ..ecc.curve import Curve
@@ -32,17 +31,15 @@ class SessionCipherTest(unittest.TestCase):
         aliceCipher = SessionCipher(aliceStore, aliceStore, aliceStore, aliceStore, 2, 1)
         bobCipher = SessionCipher(bobStore, bobStore, bobStore, bobStore, 3, 1)
 
-        alicePlaintext = "This is a plaintext message."
+        alicePlaintext = b"This is a plaintext message."
         message = aliceCipher.encrypt(alicePlaintext)
         bobPlaintext = bobCipher.decryptMsg(WhisperMessage(serialized=message.serialize()))
 
-        if sys.version_info >= (3,0): bobPlaintext = bobPlaintext.decode()
         self.assertEqual(alicePlaintext, bobPlaintext)
 
-        bobReply = "This is a message from Bob."
+        bobReply = b"This is a message from Bob."
         reply = bobCipher.encrypt(bobReply)
         receivedReply = aliceCipher.decryptMsg(WhisperMessage(serialized=reply.serialize()))
-        if sys.version_info >= (3,0): receivedReply = receivedReply.decode()
 
         self.assertEqual(bobReply, receivedReply)
 
@@ -50,15 +47,15 @@ class SessionCipherTest(unittest.TestCase):
         alicePlaintextMessages = []
 
         for i in range(0, 50):
-            alicePlaintextMessages.append("смерть за смерть %s" % i)
-            aliceCiphertextMessages.append(aliceCipher.encrypt("смерть за смерть %s" % i))
+            alicePlaintextMessages.append(b"aaaaaa %d" % i)
+            aliceCiphertextMessages.append(aliceCipher.encrypt(b"aaaaaa %d" % i))
 
         # shuffle(aliceCiphertextMessages)
         # shuffle(alicePlaintextMessages)
 
         for i in range(0, int(len(aliceCiphertextMessages)/2)):
             receivedPlaintext = bobCipher.decryptMsg(WhisperMessage(serialized=aliceCiphertextMessages[i].serialize()))
-            self.assertEqual(receivedPlaintext.decode() if sys.version_info >= (3,0) else receivedPlaintext, alicePlaintextMessages[i])
+            self.assertEqual(receivedPlaintext, alicePlaintextMessages[i])
 
     def initializeSessionsV3(self, aliceSessionState, bobSessionState):
         aliceIdentityKeyPair = Curve.generateKeyPair()

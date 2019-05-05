@@ -71,7 +71,7 @@ class SessionBuilderTest(unittest.TestCase):
         self.assertTrue(aliceStore.loadSession(self.__class__.BOB_RECIPIENT_ID,
                                                1).getSessionState().getSessionVersion() == 3)
 
-        originalMessage = "L'homme est condamné à être libre"
+        originalMessage = b"L'homme est condamne a etre libre"
         aliceSessionCipher = SessionCipher(aliceStore,
                                            aliceStore,
                                            aliceStore,
@@ -92,7 +92,6 @@ class SessionBuilderTest(unittest.TestCase):
         bobSessionCipher = SessionCipher(bobStore, bobStore, bobStore, bobStore, self.__class__.ALICE_RECIPIENT_ID, 1)
 
         plaintext = bobSessionCipher.decryptPkmsg(incomingMessage)
-        if sys.version_info >= (3,0): plaintext = plaintext.decode()
         self.assertEqual(originalMessage, plaintext)
         # @@TODO: in callback assertion
         # self.assertFalse(bobStore.containsSession(self.__class__.ALICE_RECIPIENT_ID, 1))
@@ -109,7 +108,7 @@ class SessionBuilderTest(unittest.TestCase):
         self.assertTrue(bobOutgoingMessage.getType() == CiphertextMessage.WHISPER_TYPE)
 
         alicePlaintext = aliceSessionCipher.decryptMsg(WhisperMessage(serialized=bobOutgoingMessage.serialize()))
-        if sys.version_info >= (3,0): alicePlaintext = alicePlaintext.decode()
+
         self.assertEqual(alicePlaintext, originalMessage)
 
         self.runInteraction(aliceStore, bobStore)
@@ -153,7 +152,7 @@ class SessionBuilderTest(unittest.TestCase):
                                   PreKeyWhisperMessage(serialized=outgoingMessage.serialize()).getIdentityKey())
 
         plaintext = bobSessionCipher.decryptPkmsg(PreKeyWhisperMessage(serialized=outgoingMessage.serialize()))
-        if sys.version_info >= (3,0): plaintext = plaintext.decode()
+
         self.assertEqual(plaintext, originalMessage)
 
         bobPreKey = PreKeyBundle(bobStore.getLocalRegistrationId(), 1, 31337,
@@ -266,13 +265,13 @@ class SessionBuilderTest(unittest.TestCase):
                                            1)
         bobSessionCipher = SessionCipher(bobStore, bobStore, bobStore, bobStore, self.__class__.ALICE_RECIPIENT_ID, 1)
 
-        originalMessage = "smert ze smert"
+        originalMessage = b"smert ze smert"
         aliceMessage = aliceSessionCipher.encrypt(originalMessage)
 
         self.assertTrue(aliceMessage.getType() == CiphertextMessage.WHISPER_TYPE)
 
         plaintext = bobSessionCipher.decryptMsg(WhisperMessage(serialized=aliceMessage.serialize()))
-        if sys.version_info >= (3,0): plaintext = plaintext.decode()
+
         self.assertEqual(plaintext, originalMessage)
 
         bobMessage = bobSessionCipher.encrypt(originalMessage)
@@ -280,56 +279,56 @@ class SessionBuilderTest(unittest.TestCase):
         self.assertTrue(bobMessage.getType() == CiphertextMessage.WHISPER_TYPE)
 
         plaintext = aliceSessionCipher.decryptMsg(WhisperMessage(serialized=bobMessage.serialize()))
-        if sys.version_info >= (3,0): plaintext = plaintext.decode()
+
         self.assertEqual(plaintext, originalMessage)
 
         for i in range(0, 10):
-            loopingMessage = "What do we mean by saying that existence precedes essence? " \
-                             "We mean that man first of all exists, encounters himself, " \
-                             "surges up in the world--and defines himself aftward. %s" % i
+            loopingMessage = b"What do we mean by saying that existence precedes essence? " \
+                             b"We mean that man first of all exists, encounters himself, " \
+                             b"surges up in the world--and defines himself aftward. %d" % i
             aliceLoopingMessage = aliceSessionCipher.encrypt(loopingMessage)
             loopingPlaintext = bobSessionCipher.decryptMsg(WhisperMessage(serialized=aliceLoopingMessage.serialize()))
-            if sys.version_info >= (3,0): loopingPlaintext = loopingPlaintext.decode()
+
             self.assertEqual(loopingPlaintext, loopingMessage)
 
         for i in range(0, 10):
-            loopingMessage = "What do we mean by saying that existence precedes essence? " \
-                 "We mean that man first of all exists, encounters himself, " \
-                 "surges up in the world--and defines himself aftward. %s" % i
+            loopingMessage = b"What do we mean by saying that existence precedes essence? " \
+                 b"We mean that man first of all exists, encounters himself, " \
+                 b"surges up in the world--and defines himself aftward. %d" % i
             bobLoopingMessage = bobSessionCipher.encrypt(loopingMessage)
 
             loopingPlaintext = aliceSessionCipher.decryptMsg(WhisperMessage(serialized=bobLoopingMessage.serialize()))
-            if sys.version_info >= (3,0): loopingPlaintext = loopingPlaintext.decode()
+
             self.assertEqual(loopingPlaintext, loopingMessage)
 
         aliceOutOfOrderMessages = []
 
         for i in range(0, 10):
-            loopingMessage = "What do we mean by saying that existence precedes essence? " \
-                 "We mean that man first of all exists, encounters himself, " \
-                 "surges up in the world--and defines himself aftward. %s" % i
+            loopingMessage = b"What do we mean by saying that existence precedes essence? " \
+                 b"We mean that man first of all exists, encounters himself, " \
+                 b"surges up in the world--and defines himself aftward. %d" % i
             aliceLoopingMessage = aliceSessionCipher.encrypt(loopingMessage)
             aliceOutOfOrderMessages.append((loopingMessage, aliceLoopingMessage))
 
         for i in range(0, 10):
-            loopingMessage = "What do we mean by saying that existence precedes essence? " \
-                 "We mean that man first of all exists, encounters himself, " \
-                 "surges up in the world--and defines himself aftward. %s" % i
+            loopingMessage = b"What do we mean by saying that existence precedes essence? " \
+                 b"We mean that man first of all exists, encounters himself, " \
+                 b"surges up in the world--and defines himself aftward. %d" % i
             aliceLoopingMessage = aliceSessionCipher.encrypt(loopingMessage)
             loopingPlaintext = bobSessionCipher.decryptMsg(WhisperMessage(serialized=aliceLoopingMessage.serialize()))
-            if sys.version_info >= (3,0): loopingPlaintext = loopingPlaintext.decode()
+
             self.assertEqual(loopingPlaintext, loopingMessage)
 
         for i in range(0, 10):
-            loopingMessage = "You can only desire based on what you know: %s" % i
+            loopingMessage = b"You can only desire based on what you know: %d" % i
             bobLoopingMessage = bobSessionCipher.encrypt(loopingMessage)
 
             loopingPlaintext = aliceSessionCipher.decryptMsg(WhisperMessage(serialized=bobLoopingMessage.serialize()))
-            if sys.version_info >= (3,0): loopingPlaintext = loopingPlaintext.decode()
+
             self.assertEqual(loopingPlaintext, loopingMessage)
 
         for aliceOutOfOrderMessage in aliceOutOfOrderMessages:
             outOfOrderPlaintext = bobSessionCipher.decryptMsg(WhisperMessage(
                 serialized=aliceOutOfOrderMessage[1].serialize()))
-            if sys.version_info >= (3,0): outOfOrderPlaintext = outOfOrderPlaintext.decode()
+
             self.assertEqual(outOfOrderPlaintext, aliceOutOfOrderMessage[0])

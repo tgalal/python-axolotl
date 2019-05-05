@@ -32,7 +32,7 @@ class GroupCipherTest(unittest.TestCase):
         sentAliceDistributionMessage = aliceSessionBuilder.create(GROUP_SENDER);
         receivedAliceDistributionMessage = SenderKeyDistributionMessage(serialized = sentAliceDistributionMessage.serialize());
 
-        ciphertextFromAlice = aliceGroupCipher.encrypt("smert ze smert");
+        ciphertextFromAlice = aliceGroupCipher.encrypt(b"smert ze smert");
 
         try:
             plaintextFromAlice = bobGroupCipher.decrypt(ciphertextFromAlice);
@@ -54,10 +54,10 @@ class GroupCipherTest(unittest.TestCase):
 
         bobSessionBuilder.process(GROUP_SENDER, receivedAliceDistributionMessage)
 
-        ciphertextFromAlice = aliceGroupCipher.encrypt("smert ze smert")
+        ciphertextFromAlice = aliceGroupCipher.encrypt(b"smert ze smert")
         plaintextFromAlice = bobGroupCipher.decrypt(ciphertextFromAlice)
 
-        self.assertEqual(plaintextFromAlice, "smert ze smert")
+        self.assertEqual(plaintextFromAlice, b"smert ze smert")
 
     def test_basicRatchet(self):
         aliceStore = InMemorySenderKeyStore()
@@ -77,9 +77,9 @@ class GroupCipherTest(unittest.TestCase):
 
         bobSessionBuilder.process(GROUP_SENDER, receivedAliceDistributionMessage)
 
-        ciphertextFromAlice  = aliceGroupCipher.encrypt("smert ze smert")
-        ciphertextFromAlice2 = aliceGroupCipher.encrypt("smert ze smert2")
-        ciphertextFromAlice3 = aliceGroupCipher.encrypt("smert ze smert3")
+        ciphertextFromAlice  = aliceGroupCipher.encrypt(b"smert ze smert")
+        ciphertextFromAlice2 = aliceGroupCipher.encrypt(b"smert ze smert2")
+        ciphertextFromAlice3 = aliceGroupCipher.encrypt(b"smert ze smert3")
 
         plaintextFromAlice = bobGroupCipher.decrypt(ciphertextFromAlice)
 
@@ -93,9 +93,9 @@ class GroupCipherTest(unittest.TestCase):
         plaintextFromAlice2 = bobGroupCipher.decrypt(ciphertextFromAlice2)
         plaintextFromAlice3 = bobGroupCipher.decrypt(ciphertextFromAlice3)
 
-        self.assertEqual(plaintextFromAlice,"smert ze smert")
-        self.assertEqual(plaintextFromAlice2, "smert ze smert2")
-        self.assertEqual(plaintextFromAlice3, "smert ze smert3")
+        self.assertEqual(plaintextFromAlice, b"smert ze smert")
+        self.assertEqual(plaintextFromAlice2, b"smert ze smert2")
+        self.assertEqual(plaintextFromAlice3, b"smert ze smert3")
 
 
     def test_outOfOrder(self):
@@ -118,19 +118,19 @@ class GroupCipherTest(unittest.TestCase):
 
         ciphertexts = []
         for i in range(0, 100):
-            ciphertexts.append(aliceGroupCipher.encrypt("up the punks"))
+            ciphertexts.append(aliceGroupCipher.encrypt(b"up the punks"))
         while len(ciphertexts) > 0:
             index = KeyHelper.getRandomSequence(2147483647) % len(ciphertexts)
             ciphertext = ciphertexts.pop(index)
             plaintext = bobGroupCipher.decrypt(ciphertext)
-            self.assertEqual(plaintext, "up the punks")
+            self.assertEqual(plaintext, b"up the punks")
 
     def test_encryptNoSession(self):
 
         aliceStore = InMemorySenderKeyStore()
         aliceGroupCipher = GroupCipher(aliceStore, "groupWithBobInIt")
         try:
-            aliceGroupCipher.encrypt("up the punks")
+            aliceGroupCipher.encrypt(b"up the punks")
             raise AssertionError("Should have failed!")
         except NoSessionException as nse:
             # good

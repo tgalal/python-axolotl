@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import os
 
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 
 from .ecc.curve import Curve
 from .sessionbuilder import SessionBuilder
-from .util.byteutil import ByteUtil
 from .state.sessionstate import SessionState
 from .protocol.whispermessage import WhisperMessage
 from .protocol.prekeywhispermessage import PreKeyWhisperMessage
@@ -16,12 +14,10 @@ from .nosessionexception import NoSessionException
 from .invalidmessageexception import InvalidMessageException
 from .duplicatemessagexception import DuplicateMessageException
 
-
-if sys.version_info >= (3, 0):
-    unicode = str
-
 import  logging
+
 logger = logging.getLogger(__name__)
+
 class SessionCipher:
     def __init__(self, sessionStore, preKeyStore, signedPreKeyStore, identityKeyStore, recepientId, deviceId):
         self.sessionStore = sessionStore
@@ -33,16 +29,8 @@ class SessionCipher:
 
     def encrypt(self, paddedMessage):
         """
-        :type paddedMessage: str
+        :type paddedMessage: bytes
         """
-        # TODO: make this less ugly and python 2 and 3 compatible
-        # paddedMessage = bytearray(paddedMessage.encode() if (sys.version_info >= (3, 0) and not type(paddedMessage) in (bytes, bytearray)) or type(paddedMessage) is unicode else paddedMessage)
-        if (sys.version_info >= (3, 0) and
-                not type(paddedMessage) in (bytes, bytearray)) or type(paddedMessage) is unicode:
-            paddedMessage = bytearray(paddedMessage.encode())
-        else:
-            paddedMessage = bytearray(paddedMessage)
-
         sessionRecord = self.sessionStore.loadSession(self.recipientId, self.deviceId)
         sessionState = sessionRecord.getSessionState()
         chainKey = sessionState.getSenderChainKey()
@@ -206,7 +194,7 @@ class SessionCipher:
         else:
             cipher = self.getCipher_v2(messageKeys.getCipherKey(), messageKeys.getCounter())
 
-        return cipher.encrypt(bytes(plainText))
+        return cipher.encrypt(plainText)
 
     def getPlaintext(self, version, messageKeys, cipherText):
         cipher = None
@@ -264,9 +252,6 @@ class AESCipher:
         return data[0:-unpadLength]
 
     def encrypt(self, raw):
-        # if sys.version_info >= (3,0):
-        #     rawPadded = pad(raw.decode()).encode()
-        # else:
         rawPadded = pad(raw)
         encryptor = self.cipher.encryptor()
         try:

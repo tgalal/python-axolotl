@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import sys
 from ..invalidkeyidexception import InvalidKeyIdException
 from ..invalidkeyexception import InvalidKeyException
 from ..invalidmessageexception import InvalidMessageException
@@ -9,8 +8,6 @@ from ..nosessionexception import NoSessionException
 from ..protocol.senderkeymessage import SenderKeyMessage
 from ..sessioncipher import AESCipher
 from ..groups.state.senderkeystore import SenderKeyStore
-if sys.version_info >= (3, 0):
-    unicode = str
 class GroupCipher:
     def __init__(self, senderKeyStore, senderKeyName):
         """
@@ -22,15 +19,8 @@ class GroupCipher:
 
     def encrypt(self, paddedPlaintext):
         """
-        :type paddedPlaintext: str
+        :type paddedPlaintext: bytes
         """
-        # TODO: make this less ugly and python 2 and 3 compatible
-        # paddedMessage = bytearray(paddedMessage.encode() if (sys.version_info >= (3, 0) and not type(paddedMessage) in (bytes, bytearray)) or type(paddedMessage) is unicode else paddedMessage)
-        if (sys.version_info >= (3, 0) and
-                not type(paddedPlaintext) in (bytes, bytearray)) or type(paddedPlaintext) is unicode:
-            paddedPlaintext = bytearray(paddedPlaintext.encode())
-        else:
-            paddedPlaintext = bytearray(paddedPlaintext)
         try:
             record = self.senderKeyStore.loadSenderKey(self.senderKeyName)
             senderKeyState = record.getSenderKeyState()
@@ -101,8 +91,6 @@ class GroupCipher:
         try:
             cipher = AESCipher(key, iv)
             plaintext = cipher.decrypt(ciphertext)
-            if sys.version_info >= (3, 0):
-                return plaintext.decode()
             return plaintext
         except Exception as e:
             raise InvalidMessageException(e)
@@ -114,4 +102,4 @@ class GroupCipher:
         :type plaintext: bytearray
         """
         cipher = AESCipher(key, iv)
-        return cipher.encrypt(bytes(plaintext))
+        return cipher.encrypt(plaintext)
