@@ -4,6 +4,7 @@ import sys
 
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import padding
 
 from .ecc.curve import Curve
 from .sessionbuilder import SessionBuilder
@@ -188,50 +189,16 @@ class SessionCipher:
         :type messageKeys: MessageKeys
         :type  plainText: bytearray
         """
-        cipher = None
-        if version >= 3:
-            cipher = self.getCipher(messageKeys.getCipherKey(), messageKeys.getIv())
-        else:
-            cipher = self.getCipher_v2(messageKeys.getCipherKey(), messageKeys.getCounter())
-
+        cipher = self.getCipher(messageKeys.getCipherKey(), messageKeys.getIv())
         return cipher.encrypt(plainText)
 
     def getPlaintext(self, version, messageKeys, cipherText):
-        cipher = None
-        if version >= 3:
-            cipher = self.getCipher(messageKeys.getCipherKey(), messageKeys.getIv())
-        else:
-            cipher = self.getCipher_v2(messageKeys.getCipherKey(), messageKeys.getCounter())
+        cipher = self.getCipher(messageKeys.getCipherKey(), messageKeys.getIv())
 
         return cipher.decrypt(cipherText)
 
     def getCipher(self, key, iv):
-        # Cipher.getInstance("AES/CBC/PKCS5Padding");
-        # cipher = AES.new(key, AES.MODE_CBC, IV = iv)
-        # return cipher
         return AESCipher(key, iv)
-
-    def getCipher_v2(self, key, counter):
-        # AES/CTR/NoPadding
-        return AESCipherV2(key, counter)
-
-
-BS = 16
-if sys.version_info >= (3, 0):
-    pad = lambda s: s + ((BS - len(s) % BS) * chr(BS - len(s) % BS)).encode()
-    unpad = lambda s : s[0:-s[-1]]
-else:
-    pad = lambda s: s + (BS - len(s) % BS) * chr(BS - len(s) % BS)
-    unpad = lambda s : s[0:-ord(s[-1])]
-
-if sys.version_info >= (3, 0):
-    to_bytes = int.to_bytes
-else:
-    def to_bytes(n, length, endianess='big'):
-        h = '%x' % n
-        s = ('0'*(len(h) % 2) + h).zfill(length*2).decode('hex')
-        return s if endianess == 'big' else s[::-1]
-
 
 class AESCipher:
     def __init__(self, key, iv):
@@ -239,20 +206,11 @@ class AESCipher:
         self.iv = iv
         self.cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
 
-    def unpad(self, data):
-        unpadLength = data[-1]
-        if type(unpadLength) is int:
-            cmp = bytes([data[-unpadLength]] * unpadLength)
-        else:
-            unpadLength = ord(unpadLength)
-            cmp = data[-unpadLength] * unpadLength
-        if data[-unpadLength:] != cmp:
-            raise ValueError("Data not properly padded \n %s" %  data)
-
-        return data[0:-unpadLength]
-
     def encrypt(self, raw):
-        rawPadded = pad(raw)
+        if len(raw) % 16 != 0:
+            padder = padding.PKCS7(128).padder()
+            rawPadded = padder.update(raw) + padder.finalize()
+
         encryptor = self.cipher.encryptor()
         try:
             return encryptor.update(rawPadded) + encryptor.finalize()
@@ -261,22 +219,6 @@ class AESCipher:
 
     def decrypt(self, enc):
         decryptor = self.cipher.decryptor()
-        return self.unpad(decryptor.update(enc) + decryptor.finalize())
-
-
-class AESCipherV2:
-    def __init__(self, key, counter):
-        self.key = key
-        counter = to_bytes(counter, 16, 'big')
-        self.cipher = Cipher(algorithms.AES(key), modes.CTR(counter), backend=default_backend())
-
-    def encrypt(self, raw):
-        encryptor = self.cipher.encryptor()
-        try:
-            return encryptor.update(raw) + encryptor.finalize()
-        except ValueError:
-            raise
-
-    def decrypt(self, enc):
-        decryptor = self.cipher.decryptor()
-        return decryptor.update(enc) + decryptor.finalize()
+        decrypted = decryptor.update(enc) + decryptor.finalize()
+        unpadder = padding.PKCS7(128).unpadder()
+        return unpadder.update(decrypted) + unpadder.finalize()
