@@ -1,22 +1,14 @@
 This is a python port of [libsignal-protocol-java](https://github.com/WhisperSystems/libaxolotl-android) originally written by [Moxie Marlinspike](https://github.com/moxie0)
 
-Compare with
-[libsignal-protocol-php](https://github.com/albert-chin/libsignal-protocol-php)
-forked from
-[libaxolotl-php](https://github.com/mgp25/libaxolotl-php),
-which is a php port.
-
 Overview from original author's:
 
- > This is a ratcheting forward secrecy protocol that works in synchronous and asynchronous messaging environments. The protocol overview is available [here](https://github.com/trevp/axolotl/wiki), and the details of the wire format are available [here](https://github.com/trevp/axolotl/wiki).
+ > This is a ratcheting forward secrecy protocol that works in synchronous and asynchronous messaging environments.
  
-Read rest of of details [here](https://github.com/WhisperSystems/libaxolotl-android/blob/master/README.md).
-
 # Installation
 
 The library has some dependencies which are automatically pulled and installed if you use the instructions below for your OS
 
- - [protobuf 2.6+](https://github.com/google/protobuf/)
+ - [protobuf 3.0+](https://github.com/google/protobuf/)
  - [cryptography](https://cryptography.io)
  - [python-axolotl-curve25519](https://github.com/tgalal/python-axolotl-curve25519)
 
@@ -26,10 +18,6 @@ You need to have python headers installed, usually through installing a package 
 ```
 python setup.py install
 ```
-
-## Mac
-
-I don't have mac to test. Send me instructions or a MacBook.
 
 ## Windows
 
@@ -99,7 +87,7 @@ deliver(message.serialize())
 
 # Examples
 
-python-axolotl is actively used in [yowsup](https://github.com/tgalal/yowsup) to support the new end to end encryption in WhatsApp
+python-axolotl is actively used in [yowsup](https://github.com/tgalal/yowsup) to support E2E encryption of WhatsApp
 
 # License
 
