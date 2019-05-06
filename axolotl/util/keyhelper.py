@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import os
 import time
 import binascii
-import math
+import os
+from random import SystemRandom
 
 from ..ecc.curve import Curve
 from ..identitykey import IdentityKey
@@ -35,20 +35,24 @@ class KeyHelper:
         # return IdentityKeyPair(serialized=serialized)
 
     @staticmethod
-    def generateRegistrationId():
+    def generateRegistrationId(extended_range=False):
         """
         Generate a registration ID.  Clients should only do this once,
         at install time.
+        :param extended_range: By default (false), the generated registration ID is sized to require the minimal
+        possible protobuf encoding overhead. Specify true if the caller needs the full range of MAX_INT at the cost
+        of slightly higher encoding overhead.
         """
-        regId = KeyHelper.getRandomSequence()
+        if extended_range:
+            regId = KeyHelper.getRandomSequence(2147483646) + 1
+        else:
+            regId = KeyHelper.getRandomSequence(16380) + 1
+
         return regId
 
     @staticmethod
-    def getRandomSequence(max=4294967296):
-        size = int(math.log(max) / math.log(2)) / 8
-        rand = os.urandom(int(size))
-        randh = binascii.hexlify(rand)
-        return int(randh, 16)
+    def getRandomSequence(max):
+        return SystemRandom().randrange(max)
 
     @staticmethod
     def generatePreKeys(start, count):
