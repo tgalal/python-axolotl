@@ -1,5 +1,5 @@
 language: python
-python: '3.5'
+python: '3.6'
 # command to install dependencies
 
 env:
@@ -38,4 +38,3 @@ cache:
 branches:
   only:
     - master
-    - develop
