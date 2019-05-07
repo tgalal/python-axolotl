@@ -210,6 +210,8 @@ class AESCipher:
         if len(raw) % 16 != 0:
             padder = padding.PKCS7(128).padder()
             rawPadded = padder.update(raw) + padder.finalize()
+        else:
+            rawPadded = raw
 
         encryptor = self.cipher.encryptor()
         try:
