@@ -30,7 +30,7 @@ class PreKeyWhisperMessage(CiphertextMessage):
                 preKeyWhisperMessage = whisperprotos.PreKeyWhisperMessage()
                 preKeyWhisperMessage.ParseFromString(serialized[1:])
 
-                if not preKeyWhisperMessage.signedPreKeyId or \
+                if preKeyWhisperMessage.signedPreKeyId is None or \
                         not preKeyWhisperMessage.baseKey or \
                         not preKeyWhisperMessage.identityKey or \
                         not preKeyWhisperMessage.message:
