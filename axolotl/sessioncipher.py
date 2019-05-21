@@ -207,11 +207,8 @@ class AESCipher:
         self.cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
 
     def encrypt(self, raw):
-        if len(raw) % 16 != 0:
-            padder = padding.PKCS7(128).padder()
-            rawPadded = padder.update(raw) + padder.finalize()
-        else:
-            rawPadded = raw
+        padder = padding.PKCS7(128).padder()
+        rawPadded = padder.update(raw) + padder.finalize()
 
         encryptor = self.cipher.encryptor()
         try:

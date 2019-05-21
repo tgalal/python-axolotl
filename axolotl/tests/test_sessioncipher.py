@@ -43,6 +43,11 @@ class SessionCipherTest(unittest.TestCase):
 
         self.assertEqual(bobReply, receivedReply)
 
+        alicePlaintext = b"ABCDEFGHIJKLMNOP"  # ensure padding/unpadding properly applies on message of blocksize length
+        message = aliceCipher.encrypt(alicePlaintext)
+        bobPlaintext = bobCipher.decryptMsg(WhisperMessage(serialized=message.serialize()))
+        self.assertEqual(alicePlaintext, bobPlaintext)
+
         aliceCiphertextMessages = []
         alicePlaintextMessages = []
 
