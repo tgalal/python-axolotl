@@ -1,0 +1,27 @@
+name: ci
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        toxenv: [ py39, py38, py37, py36, py35, py33, py27, py26 ]
+    name: ${{ matrix.toxenv }}
+    env:
+      LD_PRELOAD: /lib/x86_64-linux-gnu/libSegFault.so
+      SEGFAULT_SIGNALS: all
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+      - name: Setup python
+        uses: actions/setup-python@main
+        with:
+          cache: 'pip'
+      - name: Setup
+        run: |
+          if [[ ${{ matrix.toxenv }} == py2* ]]; then sudo apt-get install -y python-dev; fi
+          pip install -r requirements.txt
+      - name: Test
+        run: tox -v -e ${{ matrix.toxenv }}
